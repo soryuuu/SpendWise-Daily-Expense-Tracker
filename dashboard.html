@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" type="image/x-icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQkfEQwlbpfThPXJNxH9OTOGQ4ozDnj1B3avg&s">
+  <title>SpendWise — Analytics Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background:
+        radial-gradient(50% 40% at 8% 6%, rgba(120,210,190,0.32), transparent 60%),
+        radial-gradient(45% 40% at 95% 0%, rgba(120,170,255,0.24), transparent 60%),
+        radial-gradient(50% 40% at 90% 90%, rgba(255,190,210,0.18), transparent 60%),
+        radial-gradient(50% 40% at 4% 92%, rgba(150,220,255,0.24), transparent 60%),
+        linear-gradient(160deg, #eef4f9 0%, #e7eff6 100%);
+      background-attachment: fixed;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #16222f;
+      padding: 1.5rem;
+      min-height: 100vh;
+    }
+    .dashboard-container { max-width: 1400px; margin: 0 auto; }
+    .header {
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 1rem; margin-bottom: 1.8rem;
+      background: rgba(255,255,255,0.55);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid rgba(255,255,255,0.65);
+      padding: 0.9rem 1.8rem; border-radius: 28px;
+      box-shadow: 0 8px 24px rgba(20,50,70,0.06);
+    }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo i {
+      font-size: 1.5rem; color: #2A8074;
+      background: linear-gradient(150deg, #ffffff, #eef6f4);
+      width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+      border-radius: 16px;
+      box-shadow: 0 6px 16px rgba(42,128,116,0.22), inset 0 1px 1px rgba(255,255,255,0.9);
+    }
+    .logo h1 {
+      font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #1f6a8c, #2A8074);
+      background-clip: text; -webkit-background-clip: text; color: transparent;
+    }
+    .back-btn {
+      background: rgba(255,255,255,0.65);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.6);
+      padding: 10px 22px; border-radius: 2rem; font-weight: 600;
+      cursor: pointer; display: flex; align-items: center; gap: 8px;
+      text-decoration: none; color: #16222f; transition: 0.2s;
+      box-shadow: 0 2px 8px rgba(20,50,70,0.06);
+    }
+    .back-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(20,50,70,0.12); }
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.4rem; margin-bottom: 1.8rem;
+    }
+    .stat-card {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(255,255,255,0.5), rgba(255,255,255,0.22));
+      backdrop-filter: blur(30px) saturate(220%);
+      -webkit-backdrop-filter: blur(30px) saturate(220%);
+      border-radius: 24px; padding: 1.3rem; text-align: center;
+      box-shadow: 0 10px 26px rgba(20,50,70,0.07), inset 0 1px 1px rgba(255,255,255,0.9), inset 0 0 26px rgba(255,255,255,0.16);
+      border: 1px solid rgba(255,255,255,0.85);
+      transition: transform 0.2s;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute; top: -60%; left: -25%;
+      width: 60%; height: 220%;
+      background: linear-gradient(120deg, rgba(255,255,255,0.6), rgba(255,255,255,0) 65%);
+      transform: rotate(18deg);
+      pointer-events: none;
+    }
+    .stat-card > * { position: relative; z-index: 1; }
+    .stat-card:hover { transform: translateY(-4px); }
+    .stat-value { font-size: 1.7rem; font-weight: 700; letter-spacing: -0.02em; color: #1f4e6e; }
+    .stat-label { font-size: 0.72rem; color: #7E8C9E; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.3rem; }
+    .charts-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 1.4rem; margin-bottom: 1.8rem;
+    }
+    .chart-card {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(255,255,255,0.5), rgba(255,255,255,0.22));
+      backdrop-filter: blur(30px) saturate(220%);
+      -webkit-backdrop-filter: blur(30px) saturate(220%);
+      border-radius: 26px; padding: 1.5rem;
+      box-shadow: 0 10px 26px rgba(20,50,70,0.07), inset 0 1px 1px rgba(255,255,255,0.9), inset 0 0 26px rgba(255,255,255,0.16);
+      border: 1px solid rgba(255,255,255,0.85);
+    }
+    .chart-card::before {
+      content: '';
+      position: absolute; top: -60%; left: -25%;
+      width: 60%; height: 220%;
+      background: linear-gradient(120deg, rgba(255,255,255,0.6), rgba(255,255,255,0) 65%);
+      transform: rotate(18deg);
+      pointer-events: none;
+    }
+    .chart-card > * { position: relative; z-index: 1; }
+    .chart-title { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: #1f4e6e; display: flex; align-items: center; gap: 8px; }
+    canvas { max-height: 250px; width: 100%; }
+    .top-categories {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(255,255,255,0.5), rgba(255,255,255,0.22));
+      backdrop-filter: blur(30px) saturate(220%);
+      -webkit-backdrop-filter: blur(30px) saturate(220%);
+      border-radius: 26px; padding: 1.5rem; margin-top: 1.4rem;
+      box-shadow: 0 10px 26px rgba(20,50,70,0.07), inset 0 1px 1px rgba(255,255,255,0.9), inset 0 0 26px rgba(255,255,255,0.16);
+      border: 1px solid rgba(255,255,255,0.85);
+    }
+    .top-categories::before {
+      content: '';
+      position: absolute; top: -60%; left: -25%;
+      width: 60%; height: 220%;
+      background: linear-gradient(120deg, rgba(255,255,255,0.6), rgba(255,255,255,0) 65%);
+      transform: rotate(18deg);
+      pointer-events: none;
+    }
+    .top-categories > * { position: relative; z-index: 1; }
+    .category-item { display: flex; justify-content: space-between; align-items: center; padding: 0.7rem 0; border-bottom: 1px solid rgba(20,50,70,0.06); }
+    .category-item:last-child { border-bottom: none; }
+    .category-name { display: flex; align-items: center; gap: 8px; min-width: 120px; }
+    .category-bar { flex: 1; height: 6px; background: rgba(20,50,70,0.08); border-radius: 3px; margin: 0 0.8rem; overflow: hidden; }
+    .category-bar-fill { height: 100%; background: linear-gradient(90deg, #33917f, #1c5f54); border-radius: 3px; }
+    .category-amount { font-weight: 600; min-width: 80px; text-align: right; font-size: 0.85rem; }
+    .empty-dashboard {
+      position: relative;
+      overflow: hidden;
+      text-align: center; padding: 3rem;
+      background: linear-gradient(135deg, rgba(255,255,255,0.5), rgba(255,255,255,0.22));
+      backdrop-filter: blur(30px) saturate(220%);
+      -webkit-backdrop-filter: blur(30px) saturate(220%);
+      border-radius: 32px;
+      border: 1px solid rgba(255,255,255,0.85);
+      box-shadow: inset 0 1px 1px rgba(255,255,255,0.9), inset 0 0 26px rgba(255,255,255,0.16);
+    }
+    .empty-dashboard::before {
+      content: '';
+      position: absolute; top: -60%; left: -25%;
+      width: 60%; height: 220%;
+      background: linear-gradient(120deg, rgba(255,255,255,0.6), rgba(255,255,255,0) 65%);
+      transform: rotate(18deg);
+      pointer-events: none;
+    }
+    .empty-dashboard > * { position: relative; z-index: 1; }
+    footer { margin-top: 1.8rem; text-align: center; font-size: 0.7rem; color: #6f8faa; }
+    @media (max-width: 768px) {
+      body { padding: 1rem; }
+      .charts-grid { grid-template-columns: 1fr; }
+      .stat-value { font-size: 1.3rem; }
+    }
+
+  </style>
+</head>
+<body>
+<div class="dashboard-container">
+  <div class="header">
+    <div class="logo">
+      <i class="fas fa-chart-line"></i>
+      <h1>Analytics Dashboard</h1>
+    </div>
+    <div style="display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap;">
+      <button class="back-btn" onclick="window.location.href='main.html'">
+        <i class="fas fa-arrow-left"></i> Back to Tracker
+      </button>
+      <button class="back-btn" id="exportBtn" style="background:#2A7F6E;color:white;gap:8px;" onclick="exportToExcel()">
+        <i class="fas fa-download"></i> Export to Excel
+      </button>
+    </div>
+  </div>
+  <div id="dashboardContent">
+    <div class="empty-dashboard">
+      <i class="fas fa-chart-simple" style="font-size: 3rem; color: #b9c3d0;"></i>
+      <h3>Loading your financial data...</h3>
+    </div>
+  </div>
+  <footer>SpendWise: Daily Expense Tracker</footer>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyC0BnVATHYNbRSUKorbfGN6-6-h6fNv2gY",
+    authDomain: "spendwise-6767.firebaseapp.com",
+    projectId: "spendwise-6767",
+    storageBucket: "spendwise-6767.firebasestorage.app",
+    messagingSenderId: "786309362149",
+    appId: "1:786309362149:web:1a419faed45135411e7f0c"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUser = null;         // stored when auth resolves
+  let currentTransactions = [];   // stored so exportToExcel() can always access them
+
+  // ========== CURRENCY ==========
+  const currencySymbols = {
+    USD: '$', EUR: '€', GBP: '£', JPY: '¥', MYR: 'RM', INR: '₹',
+    CAD: 'C$', AUD: 'A$', SGD: 'S$', CNY: '¥', KRW: '₩', THB: '฿'
+  };
+
+  function getCurrencySymbol() {
+    const saved = localStorage.getItem('spendwise_currency');
+    return currencySymbols[saved] || '$';
+  }
+
+  // ========== LOAD FROM FIRESTORE ==========
+  async function loadTransactions(uid) {
+    try {
+      const txRef = collection(db, 'users', uid, 'transactions');
+      const q = query(txRef, orderBy('date', 'desc'));
+      const snapshot = await getDocs(q);
+      const transactions = [];
+      snapshot.forEach(docSnap => transactions.push({ id: docSnap.id, ...docSnap.data() }));
+      console.log(`✅ Dashboard loaded ${transactions.length} transactions`);
+      return transactions;
+    } catch (e) {
+      console.error("Failed to load transactions:", e);
+      return [];
+    }
+  }
+
+  // ========== HELPERS ==========
+// ========== RENDER ==========
+  function renderDashboard(transactions) {
+    const symbol = getCurrencySymbol();
+    const container = document.getElementById('dashboardContent');
+
+    if (transactions.length === 0) {
+      container.innerHTML = `
+        <div class="empty-dashboard">
+          <i class="fas fa-receipt" style="font-size: 3rem; color: #b9c3d0;"></i>
+          <h3>No Transactions Yet</h3>
+          <p style="color:#7E8C9E; margin: 0.5rem 0;">Add your first transaction in the main tracker.</p>
+          <button onclick="window.location.href='main.html'" style="margin-top:1rem; background:#2A7F6E; color:white; border:none; padding:10px 24px; border-radius:2rem; cursor:pointer;">
+            <i class="fas fa-plus"></i> Go to Tracker
+          </button>
+        </div>
+      `;
+      return;
+    }
+
+    // Calculate totals
+    let totalIncome = 0, totalExpense = 0;
+    transactions.forEach(t => {
+      if (t.type === 'income') totalIncome += t.amount;
+      else totalExpense += t.amount;
+    });
+    const balance = totalIncome - totalExpense;
+
+    // Category breakdown
+    const categories = ['Food & Dining', 'Shopping', 'Transport', 'Entertainment', 'Bills & Utilities', 'Other'];
+    const expenseByCat = {};
+    categories.forEach(c => expenseByCat[c] = 0);
+
+    transactions.filter(t => t.type === 'expense').forEach(t => {
+      const cat = t.category || 'Other';
+      expenseByCat[cat] = (expenseByCat[cat] || 0) + t.amount;
+    });
+
+    const activeCats = categories.filter(c => expenseByCat[c] > 0);
+    const catData = activeCats.map(c => expenseByCat[c]);
+
+    // Monthly trend - last 6 months
+    const months = [];
+    const monthlyIncome = new Array(6).fill(0);
+    const monthlyExpense = new Array(6).fill(0);
+
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      months.push(d.toLocaleString('default', { month: 'short' }));
+    }
+
+    transactions.forEach(t => {
+      const date = new Date(t.date);
+      const now = new Date();
+      const monthDiff = (now.getFullYear() - date.getFullYear()) * 12 + (now.getMonth() - date.getMonth());
+      if (monthDiff >= 0 && monthDiff < 6) {
+        const idx = 5 - monthDiff;
+        if (t.type === 'income') monthlyIncome[idx] += t.amount;
+        else monthlyExpense[idx] += t.amount;
+      }
+    });
+
+    // Top categories
+    const topCats = Object.entries(expenseByCat)
+      .filter(([, v]) => v > 0)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    const maxExpense = Math.max(...Object.values(expenseByCat), 1);
+
+    // Build HTML
+    container.innerHTML = `
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value">${symbol}${balance.toFixed(2)}</div><div class="stat-label">Balance</div></div>
+        <div class="stat-card"><div class="stat-value">${symbol}${totalIncome.toFixed(2)}</div><div class="stat-label">Income</div></div>
+        <div class="stat-card"><div class="stat-value">${symbol}${totalExpense.toFixed(2)}</div><div class="stat-label">Expenses</div></div>
+        <div class="stat-card"><div class="stat-value">${transactions.length}</div><div class="stat-label">Transactions</div></div>
+      </div>
+      <div class="charts-grid">
+        <div class="chart-card"><div class="chart-title"><i class="fas fa-chart-pie"></i> Expenses by Category</div><canvas id="pieChart"></canvas></div>
+        <div class="chart-card"><div class="chart-title"><i class="fas fa-chart-line"></i> Monthly Trend (Last 6 Months)</div><canvas id="trendChart"></canvas></div>
+      </div>
+      <div class="top-categories"><div class="chart-title"><i class="fas fa-ranking-star"></i> Top Spending Categories</div>
+        ${topCats.map(([cat, amt]) => {
+          const pct = totalExpense > 0 ? (amt / totalExpense * 100).toFixed(1) : 0;
+          return `<div class="category-item"><div class="category-name"><span>${cat}</span></div><div class="category-bar"><div class="category-bar-fill" style="width: ${amt / maxExpense * 100}%"></div></div><div class="category-amount">${symbol}${amt.toFixed(2)} (${pct}%)</div></div>`;
+        }).join('')}
+      </div>
+    `;
+
+    // Render charts after DOM is ready
+    setTimeout(() => {
+      const pieCtx = document.getElementById('pieChart')?.getContext('2d');
+      if (pieCtx && activeCats.length) {
+        new Chart(pieCtx, {
+          type: 'pie',
+          data: { labels: activeCats, datasets: [{ data: catData, backgroundColor: ['#2A7F6E', '#D35C5C', '#F39C12', '#3498DB', '#9B59B6', '#1ABC9C'] }] },
+          options: { responsive: true, maintainAspectRatio: true }
+        });
+      }
+      const barCtx = document.getElementById('trendChart')?.getContext('2d');
+      if (barCtx) {
+        new Chart(barCtx, {
+          type: 'bar',
+          data: { labels: months, datasets: [
+            { label: 'Income', data: monthlyIncome, backgroundColor: '#2C8A5E', borderRadius: 6 },
+            { label: 'Expenses', data: monthlyExpense, backgroundColor: '#D35C5C', borderRadius: 6 }
+          ]},
+          options: { responsive: true, maintainAspectRatio: true, scales: { y: { beginAtZero: true, ticks: { callback: v => symbol + v } } } }
+        });
+      }
+    }, 100);
+  }
+
+  // ========== AUTH GATE — load data only after confirming user ==========
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = 'login.html';
+    } else {
+      currentUser = user;
+      currentTransactions = await loadTransactions(user.uid);
+      renderDashboard(currentTransactions);
+    }
+  });
+
+  // ── Excel Export — Bank Statement Format ──
+  window.exportToExcel = function exportToExcel() {
+    if (!window.XLSX) { alert('Export library not loaded. Please refresh and try again.'); return; }
+    if (!currentUser)  { alert('Please wait for your data to load before exporting.'); return; }
+    if (!currentTransactions.length) { alert('No transactions to export yet.'); return; }
+
+    const XLSX = window.XLSX;
+
+    const userName     = currentUser.displayName || currentUser.email.split('@')[0];
+    const userEmail    = currentUser.email;
+    const currencyCode = localStorage.getItem('spendwise_currency') || 'USD';
+    const symbol       = getCurrencySymbol();
+
+    const now          = new Date();
+    const exportLabel  = now.toLocaleString('en-MY', {
+      weekday:'long', day:'numeric', month:'long', year:'numeric',
+      hour:'2-digit', minute:'2-digit', second:'2-digit'
+    });
+
+    // Sort ascending by date for running balance
+    const sorted = [...currentTransactions].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    let runningBalance = 0;
+    let totalIncome = 0, totalExpense = 0;
+
+    // ── Build rows ──
+    const rows = [
+      ['SpendWise — Account Statement'],
+      [],
+      ['Account Holder', userName],
+      ['Email',          userEmail],
+      ['Export Date',    exportLabel],
+      ['Currency',       currencyCode + ' (' + symbol + ')'],
+      ['Total Records',  sorted.length],
+      [],
+      ['TRANSACTION HISTORY'],
+      ['No.', 'Date', 'Time', 'Description', 'Category', 'Type', 'Expenses (' + symbol + ')', 'Income (' + symbol + ')', 'Balance (' + symbol + ')'],
+    ];
+
+    sorted.forEach((t, i) => {
+      const d        = new Date(t.date);
+      const dateStr  = d.toLocaleDateString('en-MY', { day:'2-digit', month:'short', year:'numeric' });
+      const timeStr  = d.toLocaleTimeString('en-MY', { hour:'2-digit', minute:'2-digit' });
+      const isIncome = t.type === 'income';
+      const amt      = parseFloat(t.amount) || 0;
+
+      if (isIncome) { runningBalance += amt; totalIncome += amt; }
+      else          { runningBalance -= amt; totalExpense += amt; }
+
+      rows.push([
+        i + 1,
+        dateStr,
+        timeStr,
+        t.description || '',
+        t.category    || 'Other',
+        isIncome ? 'Income' : 'Expenses',
+        isIncome ? ''             : amt.toFixed(2),
+        isIncome ? amt.toFixed(2) : '',
+        runningBalance.toFixed(2),
+      ]);
+    });
+
+    // ── Summary ──
+    rows.push([], ['SUMMARY']);
+    rows.push(['Total Income',   totalIncome.toFixed(2)]);
+    rows.push(['Total Expenses',  totalExpense.toFixed(2)]);
+    rows.push(['Net Balance',             (totalIncome - totalExpense).toFixed(2)]);
+    rows.push([]);
+    rows.push(['This statement was generated by SpendWise — Daily Expense Tracker']);
+    rows.push(['Generated at', exportLabel]);
+
+    // ── Build worksheet ──
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+
+    // Column widths
+    ws['!cols'] = [
+      { wch: 5  },  // No.
+      { wch: 16 },  // Date
+      { wch: 10 },  // Time
+      { wch: 32 },  // Description
+      { wch: 20 },  // Category
+      { wch: 10 },  // Type
+      { wch: 16 },  // Expenses
+      { wch: 16 },  // Income
+      { wch: 16 },  // Balance
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Statement');
+
+    // ── Filename: username_YYYY-MM-DD_HH-MM-SS.xlsx ──
+    const pad  = n => String(n).padStart(2, '0');
+    const dateFile = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+    const timeFile = `${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+    const safeName = userName.replace(/[^a-zA-Z0-9]/g, '_');
+    const filename = `${safeName}_${dateFile}_${timeFile}.xlsx`;
+
+    XLSX.writeFile(wb, filename);
+  };
+
+</script>
+</body>
+</html>

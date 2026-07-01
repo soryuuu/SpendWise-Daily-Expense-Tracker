@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" type="image/x-icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQkfEQwlbpfThPXJNxH9OTOGQ4ozDnj1B3avg&s">
+  <title>SpendWise — Profile Settings</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background:
+        radial-gradient(50% 40% at 8% 6%, rgba(120,210,190,0.32), transparent 60%),
+        radial-gradient(45% 40% at 95% 0%, rgba(120,170,255,0.24), transparent 60%),
+        radial-gradient(50% 40% at 90% 90%, rgba(255,190,210,0.18), transparent 60%),
+        radial-gradient(50% 40% at 4% 92%, rgba(150,220,255,0.24), transparent 60%),
+        linear-gradient(160deg, #eef4f9 0%, #e7eff6 100%);
+      background-attachment: fixed;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #16222f;
+      padding: 1.5rem;
+      min-height: 100vh;
+    }
+
+    .profile-container { max-width: 800px; margin: 0 auto; }
+
+    .header {
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 1rem; margin-bottom: 1.8rem;
+      background: rgba(255,255,255,0.55);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid rgba(255,255,255,0.65);
+      padding: 0.9rem 1.8rem; border-radius: 28px;
+      box-shadow: 0 8px 24px rgba(20,50,70,0.06);
+    }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo i {
+      font-size: 1.5rem; color: #2A8074;
+      background: linear-gradient(150deg, #ffffff, #eef6f4);
+      width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+      border-radius: 16px;
+      box-shadow: 0 6px 16px rgba(42,128,116,0.22), inset 0 1px 1px rgba(255,255,255,0.9);
+    }
+    .logo h1 {
+      font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #1f6a8c, #2A8074);
+      background-clip: text; -webkit-background-clip: text; color: transparent;
+    }
+
+    .back-btn {
+      background: rgba(255,255,255,0.65);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.6);
+      padding: 10px 20px; border-radius: 2rem; font-weight: 600; font-size: 0.9rem;
+      cursor: pointer; text-decoration: none; color: #2A8074;
+      display: inline-flex; align-items: center; gap: 8px; transition: 0.2s;
+      box-shadow: 0 2px 8px rgba(20,50,70,0.06);
+    }
+    .back-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(20,50,70,0.12); background: white; }
+
+    .profile-card {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(255,255,255,0.5), rgba(255,255,255,0.22));
+      backdrop-filter: blur(30px) saturate(220%);
+      -webkit-backdrop-filter: blur(30px) saturate(220%);
+      border-radius: 32px; padding: 2.2rem;
+      box-shadow: 0 12px 30px rgba(20,50,70,0.08), inset 0 1px 1px rgba(255,255,255,0.9), inset 0 0 26px rgba(255,255,255,0.16);
+      border: 1px solid rgba(255,255,255,0.85);
+    }
+    .profile-card::before {
+      content: '';
+      position: absolute; top: -60%; left: -25%;
+      width: 60%; height: 220%;
+      background: linear-gradient(120deg, rgba(255,255,255,0.6), rgba(255,255,255,0) 65%);
+      transform: rotate(18deg);
+      pointer-events: none;
+    }
+    .profile-card > * { position: relative; z-index: 1; }
+
+    .profile-picture-section { text-align: center; margin-bottom: 2rem; }
+    .profile-picture { position: relative; display: inline-block; }
+    .profile-picture img {
+      width: 120px; height: 120px; border-radius: 50%; object-fit: cover;
+      border: 4px solid white; background: #eef2f5;
+      box-shadow: 0 10px 26px rgba(20,50,70,0.18), 0 0 0 4px rgba(42,128,116,0.18);
+    }
+    .change-photo-btn {
+      position: absolute; bottom: 5px; right: 5px;
+      background: linear-gradient(135deg, #33917f, #1c5f54);
+      border: 2px solid white; width: 38px; height: 38px; border-radius: 50%; cursor: pointer;
+      color: white; display: flex; align-items: center; justify-content: center; transition: 0.2s;
+      box-shadow: 0 6px 14px rgba(28,95,84,0.32);
+    }
+    .change-photo-btn:hover { transform: scale(1.08); }
+
+    .form-group { margin-bottom: 1.5rem; }
+    label { font-size: 0.8rem; font-weight: 600; color: #2c3e44; display: block; margin-bottom: 6px; }
+    label i { margin-right: 6px; color: #2A8074; }
+
+    input {
+      width: 100%; padding: 12px 14px; border-radius: 16px;
+      border: 1.5px solid rgba(20,50,70,0.12);
+      background: rgba(255,255,255,0.7);
+      font-family: 'Inter', sans-serif; font-size: 0.9rem; transition: 0.2s;
+    }
+    input:focus {
+      outline: none; border-color: #2A8074; background: white;
+      box-shadow: 0 0 0 4px rgba(42,128,116,0.15);
+    }
+    input:disabled { background: rgba(248,250,252,0.7); cursor: not-allowed; color: #7E8C9E; }
+
+    .input-hint { font-size: 0.7rem; color: #7E8C9E; margin-top: 4px; }
+
+    .btn-primary {
+      position: relative; overflow: hidden;
+      background: linear-gradient(135deg, rgba(51,145,127,0.68), rgba(28,95,84,0.72));
+      backdrop-filter: blur(18px) saturate(220%);
+      -webkit-backdrop-filter: blur(18px) saturate(220%);
+      border: 1px solid rgba(255,255,255,0.45); color: white; padding: 12px 24px; border-radius: 2rem;
+      font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: 0.25s cubic-bezier(.2,.8,.2,1);
+      display: inline-flex; align-items: center; gap: 8px; width: 100%; justify-content: center;
+      box-shadow: 0 10px 22px rgba(28,95,84,0.3), inset 0 1px 1px rgba(255,255,255,0.55), inset 0 0 18px rgba(255,255,255,0.12);
+    }
+    .btn-primary::before {
+      content: ''; position: absolute; top: -60%; left: -20%; width: 55%; height: 220%;
+      background: linear-gradient(120deg, rgba(255,255,255,0.55), rgba(255,255,255,0) 65%);
+      transform: rotate(20deg); pointer-events: none;
+    }
+    .btn-primary > * { position: relative; z-index: 1; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(28,95,84,0.36), inset 0 1px 1px rgba(255,255,255,0.65); }
+    .btn-primary:disabled { background: #b9c3d0; box-shadow: none; cursor: not-allowed; transform: none; }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.6); border: 1px solid rgba(20,50,70,0.1); color: #2A8074;
+      padding: 12px 24px; border-radius: 2rem; font-weight: 600; font-size: 0.9rem;
+      cursor: pointer; transition: 0.2s;
+      display: inline-flex; align-items: center; gap: 8px; width: 100%; justify-content: center;
+    }
+    .btn-secondary:hover { background: white; }
+
+    .btn-danger {
+      background: rgba(255,230,229,0.85); border: 1px solid rgba(211,92,92,0.15); color: #D35C5C;
+      padding: 12px 24px; border-radius: 2rem; font-weight: 600; font-size: 0.9rem;
+      cursor: pointer; transition: 0.2s;
+      display: inline-flex; align-items: center; gap: 8px; width: 100%; justify-content: center;
+    }
+    .btn-danger:hover { background: rgba(255,212,212,0.95); transform: translateY(-2px); }
+
+    .divider { height: 1px; background: rgba(20,50,70,0.08); margin: 1.5rem 0; }
+
+    .success-msg, .error-msg { padding: 10px 15px; border-radius: 14px; font-size: 0.8rem; margin-bottom: 1rem; display: none; }
+    .success-msg { background: rgba(224,247,232,0.85); color: #2C8A5E; }
+    .error-msg { background: rgba(255,233,233,0.85); color: #D35C5C; }
+
+    .info-text {
+      background: rgba(239,247,244,0.7); padding: 12px; border-radius: 14px;
+      font-size: 0.8rem; color: #5b6f82; text-align: center; margin-top: 1rem;
+    }
+
+    footer { margin-top: 2rem; text-align: center; font-size: 0.75rem; color: #6f8faa; }
+
+    @media (max-width: 600px) {
+      body { padding: 1rem; }
+      .profile-card { padding: 1.5rem; }
+    }
+
+  </style>
+</head>
+<body>
+<div class="profile-container">
+  <div class="header">
+    <div class="logo">
+      <i class="fas fa-coins"></i>
+      <h1>SpendWise</h1>
+    </div>
+    <a href="main.html" class="back-btn">
+      <i class="fas fa-arrow-left"></i> Back to Tracker
+    </a>
+  </div>
+
+  <div class="profile-card">
+    <h2 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
+      <i class="fas fa-user-circle" style="color: #2A7F6E;"></i> Profile Settings
+    </h2>
+
+    <div id="successMsg" class="success-msg"></div>
+    <div id="errorMsg" class="error-msg"></div>
+
+    <!-- Profile Picture Section -->
+    <div class="profile-picture-section">
+      <div class="profile-picture">
+        <img id="profileImage" src="https://ui-avatars.com/api/?background=2A7F6E&color=fff&size=120&bold=true&name=User" alt="Profile Picture" onerror="this.src='https://ui-avatars.com/api/?background=2A7F6E&color=fff&size=120&bold=true&name=User'">
+        <button id="changePhotoBtn" class="change-photo-btn" title="Change Profile Picture">
+          <i class="fas fa-camera"></i>
+        </button>
+        <input type="file" id="photoUpload" accept="image/*" style="display: none;">
+      </div>
+    </div>
+
+    <!-- Change Display Name -->
+    <div class="form-group">
+      <label><i class="fas fa-user"></i> Display Name</label>
+      <input type="text" id="displayNameInput" placeholder="Enter your display name">
+      <div class="input-hint">This name will be visible to others in collaboration.</div>
+    </div>
+
+    <!-- Save Profile Button -->
+    <button id="saveProfileBtn" class="btn-primary" style="margin-bottom: 1rem;">
+      <i class="fas fa-save"></i> Save Profile
+    </button>
+
+    <div class="divider"></div>
+
+    <!-- Email Info (read-only) -->
+    <div class="form-group">
+      <label><i class="fas fa-envelope"></i> Email Address</label>
+      <input type="email" id="emailDisplay" disabled>
+      <div class="input-hint">Your email is managed by your authentication provider.</div>
+    </div>
+
+    <!-- Provider info filled dynamically -->
+    <div class="info-text" id="providerInfo">
+      <i class="fas fa-info-circle"></i> Loading account info...
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Logout Button -->
+    <button id="logoutBtn" class="btn-danger">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
+  </div>
+
+  <footer>
+    <i class="fas fa-shield-alt"></i> Your data is secure with SpendWise
+  </footer>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyC0BnVATHYNbRSUKorbfGN6-6-h6fNv2gY",
+    authDomain: "spendwise-6767.firebaseapp.com",
+    projectId: "spendwise-6767",
+    storageBucket: "spendwise-6767.firebasestorage.app",
+    messagingSenderId: "786309362149",
+    appId: "1:786309362149:web:1a419faed45135411e7f0c",
+    measurementId: "G-LL8TZTVTNS"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // DOM Elements
+  const successDiv      = document.getElementById('successMsg');
+  const errorDiv        = document.getElementById('errorMsg');
+  const displayNameInput = document.getElementById('displayNameInput');
+  const emailDisplay    = document.getElementById('emailDisplay');
+  const profileImage    = document.getElementById('profileImage');
+  const saveProfileBtn  = document.getElementById('saveProfileBtn');
+  const changePhotoBtn  = document.getElementById('changePhotoBtn');
+  const photoUpload     = document.getElementById('photoUpload');
+  const logoutBtn       = document.getElementById('logoutBtn');
+  const providerInfo    = document.getElementById('providerInfo');
+
+  let currentUser = null;
+
+  // ========== MESSAGES ==========
+  function showMessage(message, isSuccess = true) {
+    if (isSuccess) {
+      successDiv.textContent = message;
+      successDiv.style.display = 'block';
+      errorDiv.style.display = 'none';
+    } else {
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+      successDiv.style.display = 'none';
+    }
+    setTimeout(() => {
+      successDiv.style.display = 'none';
+      errorDiv.style.display = 'none';
+    }, 3000);
+  }
+
+  // ========== LOAD PROFILE ==========
+  // Pulls both Firebase Auth fields AND extra fields from Firestore users/{uid}
+  async function loadUserData(user) {
+    currentUser = user;
+
+    // Fill basic Auth fields
+    displayNameInput.value = user.displayName || '';
+    emailDisplay.value = user.email || '';
+
+    // Set avatar
+    const name = user.displayName || user.email.split('@')[0];
+    const savedImg = localStorage.getItem(`profile_img_${user.uid}`);
+    const fallbackAvatar = `https://ui-avatars.com/api/?background=2A7F6E&color=fff&size=120&bold=true&name=${encodeURIComponent(name)}`;
+    profileImage.src = savedImg || user.photoURL || fallbackAvatar;
+    // If any image src fails to load, fall back to generated avatar
+    profileImage.onerror = () => { profileImage.src = fallbackAvatar; profileImage.onerror = null; };
+
+    // Provider badge
+    const isGoogle = user.providerData.some(p => p.providerId === 'google.com');
+    providerInfo.innerHTML = isGoogle
+      ? '<i class="fas fa-info-circle"></i> Signed in with <strong>Google</strong>. Your account is securely managed by Google Authentication.'
+      : '<i class="fas fa-info-circle"></i> Signed in with <strong>Email & Password</strong>.';
+
+    // (extra profile fields like phone were removed — extend here if needed)
+
+    // Sync localStorage for other pages
+    localStorage.setItem('spendwise_user', JSON.stringify({
+      uid: user.uid,
+      email: user.email,
+      name: user.displayName || name,
+      photoURL: user.photoURL,
+      loggedIn: true,
+      loginTime: new Date().toISOString()
+    }));
+  }
+
+  // ========== SAVE PROFILE ==========
+  // Updates Firebase Auth displayName + Firestore users/{uid} with all profile fields
+  async function saveProfile() {
+    const newDisplayName = displayNameInput.value.trim();
+
+    if (!newDisplayName) { showMessage('Display name cannot be empty.', false); return; }
+    if (newDisplayName.length < 2) { showMessage('Display name must be at least 2 characters.', false); return; }
+
+    saveProfileBtn.disabled = true;
+    saveProfileBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+    try {
+      // 1. Update Firebase Auth display name
+      await updateProfile(auth.currentUser, { displayName: newDisplayName });
+
+      // 2. Update Firestore users/{uid}
+      const userRef = doc(db, 'users', currentUser.uid);
+      await setDoc(userRef, {
+        name: newDisplayName,
+        email: currentUser.email,
+        uid: currentUser.uid,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      // 3. Update localStorage so other pages reflect the new name
+      const storedUser = JSON.parse(localStorage.getItem('spendwise_user') || '{}');
+      storedUser.name = newDisplayName;
+      localStorage.setItem('spendwise_user', JSON.stringify(storedUser));
+
+      // 4. Refresh avatar if no custom photo set
+      if (!currentUser.photoURL && !localStorage.getItem(`profile_img_${currentUser.uid}`)) {
+        profileImage.src = `https://ui-avatars.com/api/?background=2A7F6E&color=fff&size=120&bold=true&name=${encodeURIComponent(newDisplayName)}`;
+      }
+
+      // 4b. If user belongs to a household, sync their updated name there too
+      const userSnapForHousehold = await getDoc(doc(db, 'users', currentUser.uid));
+      const householdId = userSnapForHousehold.data()?.householdId;
+      if (householdId) {
+        const householdRef = doc(db, 'households', householdId);
+        const householdSnap = await getDoc(householdRef);
+        if (householdSnap.exists()) {
+          const updatedMembers = (householdSnap.data().members || []).map(m =>
+            m.uid === currentUser.uid ? { ...m, name: newDisplayName } : m
+          );
+          await updateDoc(householdRef, { members: updatedMembers });
+          console.log("✅ Name synced to household members");
+        }
+      }
+
+      console.log("✅ Profile saved to Firestore:", currentUser.uid);
+      showMessage('Profile saved successfully!');
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      showMessage('Failed to save profile. Please try again.', false);
+    } finally {
+      saveProfileBtn.disabled = false;
+      saveProfileBtn.innerHTML = '<i class="fas fa-save"></i> Save Profile';
+    }
+  }
+
+  // ========== PROFILE PICTURE ==========
+  function setupProfilePicture() {
+    changePhotoBtn.addEventListener('click', () => photoUpload.click());
+
+    photoUpload.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const imageData = event.target.result;
+          profileImage.src = imageData;
+          if (currentUser) {
+            localStorage.setItem(`profile_img_${currentUser.uid}`, imageData);
+            showMessage('Profile picture updated!');
+          }
+        };
+        reader.readAsDataURL(file);
+      } else {
+        showMessage('Please select a valid image file.', false);
+      }
+    });
+  }
+
+  // ========== LOGOUT ==========
+  async function logout() {
+    if (confirm('Are you sure you want to logout?')) {
+      try {
+        localStorage.removeItem('spendwise_user');
+        await signOut(auth);
+        window.location.href = 'index.html';
+      } catch (error) {
+        console.error('Logout error:', error);
+        showMessage('Failed to logout. Please try again.', false);
+      }
+    }
+  }
+
+  // ========== AUTH GATE ==========
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = 'index.html';
+    } else {
+      await loadUserData(user);
+      setupProfilePicture();
+    }
+  });
+
+  // ========== EVENT LISTENERS ==========
+  saveProfileBtn.addEventListener('click', saveProfile);
+  logoutBtn.addEventListener('click', logout);
+  displayNameInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') saveProfile();
+  });
+</script>
+</body>
+</html>

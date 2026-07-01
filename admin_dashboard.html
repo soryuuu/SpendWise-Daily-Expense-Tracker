@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  
+  <link rel="icon" type="image/x-icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQkfEQwlbpfThPXJNxH9OTOGQ4ozDnj1B3avg&s"><title>SpendWise Admin Dashboard — System Control</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background:
+        radial-gradient(50% 40% at 8% 6%, rgba(120,170,255,0.28), transparent 60%),
+        radial-gradient(45% 40% at 95% 0%, rgba(120,210,190,0.24), transparent 60%),
+        radial-gradient(50% 40% at 90% 90%, rgba(255,190,210,0.16), transparent 60%),
+        linear-gradient(160deg, #eaf0f7 0%, #e2eaf3 100%);
+      background-attachment: fixed;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #16222f;
+    }
+
+    .admin-container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+
+    .admin-header {
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 1rem; margin-bottom: 1.8rem;
+      background: rgba(255,255,255,0.55);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid rgba(255,255,255,0.65);
+      padding: 0.9rem 1.8rem; border-radius: 28px;
+      box-shadow: 0 8px 24px rgba(20,50,70,0.08);
+    }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo i {
+      font-size: 1.5rem; color: #2A8074;
+      background: linear-gradient(150deg, #ffffff, #eef6f4);
+      width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+      border-radius: 16px;
+      box-shadow: 0 6px 16px rgba(42,128,116,0.22), inset 0 1px 1px rgba(255,255,255,0.9);
+    }
+    .logo h1 {
+      font-size: 1.45rem; font-weight: 700; letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #1f6a8c, #2A8074);
+      background-clip: text; -webkit-background-clip: text; color: transparent;
+    }
+    .admin-badge {
+      background: linear-gradient(135deg, #33917f, #1c5f54);
+      color: white; padding: 6px 16px; border-radius: 40px; font-size: 0.8rem; font-weight: 600;
+      box-shadow: 0 6px 14px rgba(28,95,84,0.28);
+    }
+    .back-link { color: #2c4f6e; text-decoration: none; font-weight: 500; }
+    .back-link:hover { color: #2A8074; }
+
+    /* Tabs */
+    .tabs {
+      display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 24px;
+      background: rgba(255,255,255,0.5);
+      border: 1px solid rgba(255,255,255,0.6);
+      border-radius: 20px; padding: 6px;
+      backdrop-filter: blur(10px);
+    }
+    .tab-btn {
+      background: transparent; border: none; padding: 10px 22px; border-radius: 16px;
+      font-weight: 600; cursor: pointer; transition: 0.2s; color: #5b6f82;
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, #33917f, #1c5f54); color: white;
+      box-shadow: 0 6px 14px rgba(28,95,84,0.28);
+    }
+    .tab-btn:hover:not(.active) { background: rgba(255,255,255,0.6); }
+
+    .tab-panel { display: none; }
+    .tab-panel.active-panel { display: block; animation: glassIn 0.55s cubic-bezier(.22,.85,.32,1); }
+    @keyframes glassIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.97); filter: blur(12px) saturate(160%); }
+      to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0) saturate(100%); }
+    }
+    .tab-btn.active {
+      transition: background 0.35s cubic-bezier(.22,.85,.32,1), color 0.35s cubic-bezier(.22,.85,.32,1), box-shadow 0.35s cubic-bezier(.22,.85,.32,1);
+    }
+
+    .card {
+      background: rgba(255,255,255,0.6);
+      backdrop-filter: blur(20px) saturate(180%);
+      border-radius: 26px; padding: 1.5rem; margin-bottom: 1.6rem;
+      box-shadow: 0 10px 24px rgba(20,50,70,0.06);
+      border: 1px solid rgba(255,255,255,0.65);
+    }
+    .card-title {
+      font-size: 1.2rem; font-weight: 700; margin-bottom: 1.2rem;
+      display: flex; align-items: center; gap: 10px; color: #1f4e6e;
+    }
+    .card-title::before {
+      content: ''; width: 5px; height: 18px; border-radius: 4px;
+      background: linear-gradient(180deg, #33917f, #1c5f54); display: inline-block;
+    }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.1rem; margin-bottom: 1.5rem; }
+    .stat-box {
+      background: rgba(255,255,255,0.55);
+      border-radius: 18px; padding: 1rem; text-align: center;
+      border: 1px solid rgba(20,50,70,0.05);
+    }
+    .stat-number { font-size: 1.9rem; font-weight: 800; color: #2A8074; }
+    .table-responsive { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 12px 8px; border-bottom: 1px solid rgba(20,50,70,0.06); }
+    th { font-weight: 600; color: #2c4f6e; }
+    .badge { padding: 4px 10px; border-radius: 40px; font-size: 0.7rem; font-weight: 600; }
+    .badge-active { background: rgba(224,242,233,0.9); color: #2C8A5E; }
+    .badge-banned { background: rgba(255,230,229,0.9); color: #c23d3d; }
+    .btn-icon { background: transparent; border: none; cursor: pointer; color: #7E8C9E; font-size: 1rem; margin: 0 4px; transition: 0.2s; }
+    .btn-icon:hover { color: #2A8074; transform: scale(1.1); }
+    .btn-danger-icon:hover { color: #e25c5c; }
+    .form-group { margin-bottom: 1rem; }
+    label { font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 5px; }
+    input, select, textarea {
+      width: 100%; padding: 10px 14px; border-radius: 14px;
+      border: 1.5px solid rgba(20,50,70,0.12);
+      background: rgba(255,255,255,0.7);
+      font-family: 'Inter', sans-serif;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #2A8074; box-shadow: 0 0 0 4px rgba(42,128,116,0.15); background: white; }
+    .btn-primary {
+      position: relative; overflow: hidden;
+      background: linear-gradient(135deg, rgba(51,145,127,0.68), rgba(28,95,84,0.72));
+      backdrop-filter: blur(18px) saturate(220%);
+      -webkit-backdrop-filter: blur(18px) saturate(220%);
+      color: white; border: 1px solid rgba(255,255,255,0.45); padding: 10px 20px; border-radius: 2rem; font-weight: 600; cursor: pointer;
+      transition: 0.2s; box-shadow: 0 8px 18px rgba(28,95,84,0.28), inset 0 1px 1px rgba(255,255,255,0.55), inset 0 0 16px rgba(255,255,255,0.12);
+    }
+    .btn-primary::before {
+      content: ''; position: absolute; top: -60%; left: -20%; width: 55%; height: 220%;
+      background: linear-gradient(120deg, rgba(255,255,255,0.55), rgba(255,255,255,0) 65%);
+      transform: rotate(20deg); pointer-events: none;
+    }
+    .btn-primary > * { position: relative; z-index: 1; }
+    .btn-primary:hover { transform: translateY(-2px); }
+    .btn-secondary {
+      background: rgba(255,255,255,0.6); color: #2A8074; border: 1px solid rgba(20,50,70,0.1);
+      padding: 8px 18px; border-radius: 2rem; cursor: pointer; transition: 0.2s;
+    }
+    .btn-secondary:hover { background: white; }
+    .log-entry { font-size: 0.8rem; padding: 8px 0; border-bottom: 1px solid rgba(20,50,70,0.05); font-family: monospace; }
+    .flex-between { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+    .announcement-banner {
+      background: rgba(255,248,231,0.85); border-left: 4px solid #ffb800; padding: 12px; border-radius: 14px; margin-bottom: 1rem;
+    }
+    @media (max-width: 700px) {
+      .admin-container { padding: 16px; }
+      th, td { font-size: 0.8rem; }
+    }
+
+  </style>
+</head>
+<body>
+<div class="admin-container">
+  <div class="admin-header">
+    <div class="logo">
+      <i class="fas fa-shield-alt"></i>
+      <h1>SpendWise Admin</h1>
+      <span class="admin-badge"><i class="fas fa-key"></i> Super Admin</span>
+    </div>
+    <div>
+      <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to App</a>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="tab-users"><i class="fas fa-users"></i> Users & Monitoring</button>
+    <button class="tab-btn" data-tab="tab-system"><i class="fas fa-sliders-h"></i> System Settings</button>
+    <button class="tab-btn" data-tab="tab-tickets"><i class="fas fa-ticket-alt"></i> Support Tickets</button>
+    <button class="tab-btn" data-tab="tab-logs"><i class="fas fa-history"></i> Administration Log</button>
+  </div>
+
+  <!-- TAB 1: Users & Maintenance -->
+  <div id="tab-users" class="tab-panel active-panel">
+    <div class="stats-grid">
+      <div class="stat-box"><div class="stat-number" id="totalUsers">0</div><div>Registered Users</div></div>
+      <div class="stat-box"><div class="stat-number" id="uptimeStatus">99.9%</div><div>Uptime (30d)</div></div>
+      <div class="stat-box"><div class="stat-number" id="pendingTickets">0</div><div>Pending Tickets</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fas fa-user-plus"></i> Registered Users & Account Management</div>
+      <div class="table-responsive">
+        <table id="usersTable">
+          <thead>
+            <tr><th>ID</th><th>Full Name</th><th>Email</th><th>Status</th><th>Joined</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="usersTableBody">
+            <tr><td colspan="6">Loading users...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="flex-between" style="margin-top: 1rem;">
+        <button id="refreshUsersBtn" class="btn-secondary"><i class="fas fa-sync-alt"></i> Refresh</button>
+        <span style="font-size:0.7rem;"><i class="fas fa-chart-line"></i> Real-time user monitoring active</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: System Settings -->
+  <div id="tab-system" class="tab-panel">
+    <div class="card">
+      <div class="card-title"><i class="fas fa-server"></i> System Uptime & Maintenance Mode</div>
+      <div class="flex-between">
+        <div><strong>Current Status:</strong> <span id="liveStatusBadge" class="badge badge-active">Operational</span></div>
+        <button id="toggleMaintenanceBtn" class="btn-secondary"><i class="fas fa-wrench"></i> Toggle Maintenance Mode</button>
+      </div>
+      <p style="margin-top: 12px; font-size:0.8rem;">When maintenance mode is ON, non-admin users will see a maintenance screen and cannot access the app.</p>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="fas fa-cog"></i> General Parameters</div>
+      <div class="form-group">
+        <label><i class="fas fa-clock"></i> Maintenance Hour (next downtime)</label>
+        <input type="datetime-local" id="maintenanceHourInput">
+        <div style="display:flex;gap:8px;margin-top:6px;">
+          <button id="setMaintenanceHourBtn" class="btn-secondary" style="flex:1">
+            <i class="fas fa-calendar-alt"></i> Schedule Maintenance
+          </button>
+          <button id="clearScheduleBtn" class="btn-secondary" style="flex:1;background:#ffe6e5;color:#D35C5C;border:none;">
+            <i class="fas fa-calendar-xmark"></i> Clear Schedule
+          </button>
+        </div>
+        <button id="setMaintenanceHourBtn" class="btn-primary" style="margin-top: 8px;">Schedule Maintenance</button>
+      </div>
+      <div class="form-group">
+        <label><i class="fas fa-bullhorn"></i> System Announcement (visible to all users)</label>
+        <textarea id="systemAnnouncement" rows="2" placeholder="Important: We will update the system on Sunday..."></textarea>
+        <div style="display:flex;gap:8px;margin-top:6px;">
+          <button id="postAnnouncementBtn" class="btn-primary" style="flex:1">
+            <i class="fas fa-bullhorn"></i> Publish Announcement
+          </button>
+          <button id="clearAnnouncementBtn" class="btn-secondary" style="flex:1;background:#ffe6e5;color:#D35C5C;border:none;">
+            <i class="fas fa-times"></i> Clear Announcement
+          </button>
+        </div>
+      </div>
+      <div id="currentAnnouncementDisplay" class="announcement-banner" style="margin-top: 1rem;">
+        <i class="fas fa-info-circle"></i> <strong>Active Announcement:</strong> <span id="activeAnnouncementText">No active announcement</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="fas fa-globe"></i> Global System Preferences</div>
+      <div class="form-group">
+        <label>Default Currency (global fallback)</label>
+        <select id="globalCurrencySelect">
+          <option value="USD">USD $</option>
+          <option value="EUR">EUR €</option>
+          <option value="MYR">MYR RM</option>
+          <option value="GBP">GBP £</option>
+        </select>
+        <button id="updateCurrencySetting" class="btn-secondary" style="margin-top: 5px;">Update Default</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: Support Tickets (View & Respond) -->
+  <div id="tab-tickets" class="tab-panel">
+    <div class="card">
+      <div class="card-title"><i class="fas fa-ticket-alt"></i> User Support Tickets</div>
+      <div class="table-responsive">
+        <table id="ticketsTable" style="width:100%">
+          <thead><tr><th>ID</th><th>User</th><th>Issue</th><th>Priority</th><th>Status</th><th>Response</th><th>Action</th></tr></thead>
+          <tbody id="ticketsAdminBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: Administration Log (both user & admin actions) -->
+  <div id="tab-logs" class="tab-panel">
+    <div class="card">
+      <div class="card-title"><i class="fas fa-list-check"></i> Activity Log (Admin & User Actions)</div>
+      <button id="clearLogsBtn" class="btn-secondary" style="margin-bottom: 12px;"><i class="fas fa-trash-alt"></i> Clear All Logs (Admin Only)</button>
+      <div id="logEntriesContainer" style="max-height: 500px; overflow-y: auto;"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import {
+    getFirestore, collection, doc, getDoc, setDoc, getDocs,
+    addDoc, updateDoc, deleteDoc, query, orderBy, serverTimestamp, limit
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyC0BnVATHYNbRSUKorbfGN6-6-h6fNv2gY",
+    authDomain: "spendwise-6767.firebaseapp.com",
+    projectId: "spendwise-6767",
+    storageBucket: "spendwise-6767.firebasestorage.app",
+    messagingSenderId: "786309362149",
+    appId: "1:786309362149:web:1a419faed45135411e7f0c"
+  };
+
+  // Admin passcode guard
+  if (sessionStorage.getItem('admin_authenticated') !== 'true') {
+    window.location.href = 'admin_login.html';
+  }
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // ── helpers ──
+  function escHtml(s) {
+    if (!s) return '';
+    return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleString('en-MY', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  }
+
+  // ── Write an admin log to Firestore ──
+  async function writeLog(actionType, details, entityId = null) {
+    try {
+      await addDoc(collection(db, 'adminLogs'), {
+        actionType,
+        actor: 'admin',
+        details,
+        entityId: entityId || null,
+        timestamp: serverTimestamp()
+      });
+    } catch(e) { console.error('Log write failed:', e); }
+  }
+
+  // ════════════════════════════════════════
+  //  TAB 1 — USERS
+  // ════════════════════════════════════════
+  async function loadUsers() {
+    const tbody = document.getElementById('usersTableBody');
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+    try {
+      const snap = await getDocs(collection(db, 'users'));
+      const users = [];
+      snap.forEach(d => users.push({ id: d.id, ...d.data() }));
+
+      document.getElementById('totalUsers').textContent = users.length;
+
+      // Hide already-deleted users from the list
+      const visibleUsers = users.filter(u => u.status !== 'deleted');
+
+      if (!visibleUsers.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">No users found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = visibleUsers.map(u => {
+        const status = u.status || 'active';
+        const badgeClass = status === 'active' ? 'badge-active' : 'badge-banned';
+        const joined = u.createdAt?.toDate ? fmtDate(u.createdAt.toDate().toISOString()) : (u.createdAt || '—');
+        return `<tr>
+          <td><code style="font-size:0.7rem">${escHtml(u.id.substring(0,10))}…</code></td>
+          <td><strong>${escHtml(u.name || 'User')}</strong></td>
+          <td>${escHtml(u.email)}</td>
+          <td><span class="badge ${badgeClass}">${escHtml(status)}</span></td>
+          <td style="font-size:0.75rem">${joined}</td>
+          <td>
+            <button class="btn-icon btn-danger-icon deleteUserBtn" data-id="${escHtml(u.id)}" data-email="${escHtml(u.email)}" title="Delete user">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        </tr>`;
+      }).join('');
+
+      // Delete (hard delete — permanently removes the user doc + their transactions from Firestore)
+      document.querySelectorAll('.deleteUserBtn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const uid = btn.dataset.id;
+          const email = btn.dataset.email;
+          if (!confirm(`Permanently delete user ${email} and all their data? This cannot be undone.`)) return;
+          btn.disabled = true;
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+          try {
+            // Delete all of the user's transactions first
+            const txSnap = await getDocs(collection(db, 'users', uid, 'transactions'));
+            await Promise.all(txSnap.docs.map(txDoc => deleteDoc(txDoc.ref)));
+            // Delete the user's profile document
+            await deleteDoc(doc(db, 'users', uid));
+            await writeLog('ADMIN_DELETE_USER', `Permanently deleted user ${email} and ${txSnap.size} transaction(s)`, uid);
+            // Remove the row immediately from the DOM
+            const row = btn.closest('tr');
+            if (row) row.remove();
+            // Update total count
+            const totalEl = document.getElementById('totalUsers');
+            if (totalEl) totalEl.textContent = Math.max(0, parseInt(totalEl.textContent) - 1);
+          } catch(e) {
+            console.error('Delete failed:', e);
+            alert('Delete failed: ' + e.message);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-trash"></i>';
+          }
+        });
+      });
+
+    } catch(e) {
+      console.error(e);
+      tbody.innerHTML = `<tr><td colspan="6" style="color:#c23d3d">❌ Error: ${e.message}</td></tr>`;
+    }
+  }
+
+  // ════════════════════════════════════════
+  //  TAB 3 — TICKETS
+  // ════════════════════════════════════════
+  async function loadTickets() {
+    const tbody = document.getElementById('ticketsAdminBody');
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center"><i class="fas fa-spinner fa-spin"></i> Loading tickets...</td></tr>';
+    try {
+      // Sort client-side to avoid needing Firestore composite index
+      const snap = await getDocs(collection(db, 'tickets'));
+      const tickets = [];
+      snap.forEach(d => tickets.push({ id: d.id, ...d.data() }));
+      tickets.sort((a, b) => {
+        const ta = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
+        const tb = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
+        return tb - ta;
+      });
+
+      const pending = tickets.filter(t => t.status === 'open').length;
+      document.getElementById('pendingTickets').textContent = pending;
+
+      if (!tickets.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">No tickets yet.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = tickets.map(t => {
+        const isOpen = t.status === 'open';
+        const created = t.createdAt?.toDate ? fmtDate(t.createdAt.toDate().toISOString()) : '—';
+        const priorityColor = t.priority === 'high' ? '#ffe0e0' : t.priority === 'medium' ? '#fff0db' : '#e8f0fe';
+        return `<tr>
+          <td style="font-size:0.7rem"><code>#${t.id.substring(0,8)}</code></td>
+          <td>
+            <strong>${escHtml(t.userName || '—')}</strong><br>
+            <span style="font-size:0.7rem;color:#7E8C9E">${escHtml(t.email || '')}</span>
+          </td>
+          <td>
+            <div style="font-size:0.7rem;color:#9B59B6;font-weight:600;margin-bottom:3px">${escHtml(t.issueTypeLabel || t.issueType || 'General')}</div>
+            <div style="font-size:0.85rem;color:#1A2C3E;line-height:1.4">${escHtml((t.message || '(no description)').substring(0, 120))}${(t.message||'').length > 120 ? '…' : ''}</div>
+            ${t.adminResponse ? `<div style="font-size:0.72rem;color:#2C8A5E;margin-top:4px;background:#e0f2e9;padding:4px 8px;border-radius:8px">✅ Admin: ${escHtml(t.adminResponse)}</div>` : ''}
+          </td>
+          <td><span class="badge" style="background:${priorityColor}">${escHtml(t.priority || 'normal')}</span></td>
+          <td><span class="badge ${isOpen ? 'badge-banned' : 'badge-active'}">${isOpen ? 'Open' : 'Resolved'}</span><br><span style="font-size:0.65rem;color:#7E8C9E">${created}</span></td>
+          <td><textarea id="resp-${t.id}" rows="2" placeholder="Write reply…" style="width:160px;font-size:0.8rem" ${!isOpen ? 'disabled' : ''}>${isOpen ? '' : escHtml(t.adminResponse || '')}</textarea></td>
+          <td>
+            ${isOpen
+              ? `<button class="btn-primary respondBtn" data-id="${t.id}" style="padding:6px 12px;font-size:0.8rem">Reply & Close</button>`
+              : `<span style="font-size:0.7rem;color:#2C8A5E">✅ Done</span>`}
+          </td>
+        </tr>`;
+      }).join('');
+
+      document.querySelectorAll('.respondBtn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const tid = btn.dataset.id;
+          const response = document.getElementById(`resp-${tid}`).value.trim() || 'Ticket resolved by admin.';
+          btn.disabled = true;
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+          await updateDoc(doc(db, 'tickets', tid), {
+            status: 'resolved',
+            adminResponse: response,
+            respondedAt: serverTimestamp(),
+            respondedBy: 'admin'
+          });
+          await writeLog('ADMIN_RESPOND_TICKET', `Replied to ticket ${tid}: ${response.substring(0,60)}`, tid);
+          loadTickets();
+        });
+      });
+    } catch(e) {
+      console.error(e);
+      tbody.innerHTML = `<tr><td colspan="7" style="color:#c23d3d">❌ ${e.message}</td></tr>`;
+    }
+  }
+
+  // ════════════════════════════════════════
+  //  TAB 4 — ADMIN LOGS
+  // ════════════════════════════════════════
+  async function loadLogs() {
+    const container = document.getElementById('logEntriesContainer');
+    container.innerHTML = '<div class="log-entry">Loading logs…</div>';
+    try {
+      const q = query(collection(db, 'adminLogs'), orderBy('timestamp', 'desc'), limit(100));
+      const snap = await getDocs(q);
+      if (snap.empty) { container.innerHTML = '<div class="log-entry">No logs yet.</div>'; return; }
+      let html = '';
+      snap.forEach(d => {
+        const log = d.data();
+        const ts = log.timestamp?.toDate ? fmtDate(log.timestamp.toDate().toISOString()) : '—';
+        html += `<div class="log-entry">
+          <strong>[${ts}]</strong>
+          <span style="color:#2A7F6E"> ${escHtml(log.actionType)}</span>
+          by ${escHtml(log.actor)} — ${escHtml(log.details)}
+        </div>`;
+      });
+      container.innerHTML = html;
+    } catch(e) {
+      container.innerHTML = `<div class="log-entry" style="color:#c23d3d">❌ ${e.message}</div>`;
+    }
+  }
+
+  // ════════════════════════════════════════
+  //  SYSTEM SETTINGS (maintenance, announcement)
+  // ════════════════════════════════════════
+  const SETTINGS_DOC = doc(db, 'systemSettings', 'config');
+
+  async function loadSettings() {
+    try {
+      const snap = await getDoc(SETTINGS_DOC);
+      const data = snap.exists() ? snap.data() : {};
+      const isMaint = data.maintenanceMode || false;
+      const announce = data.announcement || 'No active announcement.';
+
+      document.getElementById('activeAnnouncementText').textContent = announce;
+      // Don't refill the textbox — admin should type a fresh message each time
+      document.getElementById('globalCurrencySelect').value = data.defaultCurrency || 'USD';
+
+      const badge = document.getElementById('liveStatusBadge');
+      const btn   = document.getElementById('toggleMaintenanceBtn');
+      if (isMaint) {
+        badge.textContent = 'Maintenance Mode ON';
+        badge.className = 'badge badge-banned';
+        btn.innerHTML = '<i class="fas fa-check-circle"></i> Disable Maintenance';
+        btn.style.background = '#2A7F6E';
+        btn.style.color = 'white';
+      } else {
+        badge.textContent = 'Operational';
+        badge.className = 'badge badge-active';
+        btn.innerHTML = '<i class="fas fa-wrench"></i> Toggle Maintenance Mode';
+        btn.style.background = '';
+        btn.style.color = '';
+      }
+      document.getElementById('uptimeStatus').textContent = isMaint ? 'Maint.' : '99.9%';
+    } catch(e) { console.error('loadSettings:', e); }
+  }
+
+  document.getElementById('toggleMaintenanceBtn').addEventListener('click', async () => {
+    const snap = await getDoc(SETTINGS_DOC);
+    const current = snap.exists() ? (snap.data().maintenanceMode || false) : false;
+    const next = !current;
+    await setDoc(SETTINGS_DOC, { maintenanceMode: next, updatedAt: serverTimestamp() }, { merge: true });
+    await writeLog('ADMIN_TOGGLE_MAINTENANCE', `Maintenance mode set to ${next}`);
+    alert(`Maintenance mode: ${next ? 'ON — users will see maintenance notice' : 'OFF — app is live'}`);
+    loadSettings();
+  });
+
+  document.getElementById('postAnnouncementBtn').addEventListener('click', async () => {
+    const text = document.getElementById('systemAnnouncement').value.trim();
+    if (!text) { alert('Write an announcement first.'); return; }
+    await setDoc(SETTINGS_DOC, { announcement: text, announcementUpdatedAt: serverTimestamp() }, { merge: true });
+    await writeLog('ADMIN_POST_ANNOUNCEMENT', `Announcement: ${text.substring(0, 80)}`);
+    document.getElementById('systemAnnouncement').value = ''; // clear textbox after publish
+    document.getElementById('activeAnnouncementText').textContent = text;
+    alert('Announcement published to all users.');
+  });
+
+  document.getElementById('clearAnnouncementBtn').addEventListener('click', async () => {
+    if (!confirm('Remove the active announcement from all users?')) return;
+    await setDoc(SETTINGS_DOC, { announcement: null, announcementUpdatedAt: serverTimestamp() }, { merge: true });
+    await writeLog('ADMIN_CLEAR_ANNOUNCEMENT', 'Announcement cleared');
+    document.getElementById('systemAnnouncement').value = '';
+    document.getElementById('activeAnnouncementText').textContent = 'No active announcement';
+    alert('Announcement cleared.');
+  });
+
+  document.getElementById('updateCurrencySetting').addEventListener('click', async () => {
+    const curr = document.getElementById('globalCurrencySelect').value;
+    await setDoc(SETTINGS_DOC, { defaultCurrency: curr }, { merge: true });
+    await writeLog('ADMIN_UPDATE_CURRENCY', `Default currency set to ${curr}`);
+    alert(`Default currency set to ${curr}`);
+  });
+
+  document.getElementById('setMaintenanceHourBtn')?.addEventListener('click', async () => {
+    const val = document.getElementById('maintenanceHourInput').value;
+    if (!val) { alert('Pick a datetime first.'); return; }
+
+    const scheduledTime = new Date(val);
+    const now = new Date();
+
+    if (scheduledTime <= now) {
+      alert('Please pick a future date and time.');
+      return;
+    }
+
+    await setDoc(SETTINGS_DOC, {
+      scheduledMaintenance: val,
+      scheduledMaintenanceEnabled: true,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    await writeLog('ADMIN_SCHEDULE_MAINTENANCE', `Maintenance scheduled for ${val}`);
+
+    const formatted = scheduledTime.toLocaleString('en-MY', {
+      weekday:'short', day:'numeric', month:'short', year:'numeric',
+      hour:'2-digit', minute:'2-digit'
+    });
+    alert(`Maintenance scheduled for ${formatted}.\nThe app will automatically enter maintenance mode at that time.`);
+  });
+
+  // Clear scheduled maintenance
+  document.getElementById('clearScheduleBtn')?.addEventListener('click', async () => {
+    await setDoc(SETTINGS_DOC, { scheduledMaintenance: null, scheduledMaintenanceEnabled: false }, { merge: true });
+    await writeLog('ADMIN_CLEAR_SCHEDULE', 'Scheduled maintenance cleared');
+    document.getElementById('maintenanceHourInput').value = '';
+    alert('Scheduled maintenance cleared.');
+  });
+
+  // Refresh users button
+  document.getElementById('refreshUsersBtn').addEventListener('click', loadUsers);
+
+  // Clear logs
+  document.getElementById('clearLogsBtn').addEventListener('click', async () => {
+    if (!confirm('⚠️ This will delete all admin logs. Continue?')) return;
+    const snap = await getDocs(collection(db, 'adminLogs'));
+    await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+    await writeLog('ADMIN_CLEAR_LOGS', 'Admin log cleared');
+    loadLogs();
+  });
+
+  // TABS
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active-panel'));
+      document.getElementById(btn.dataset.tab).classList.add('active-panel');
+    });
+  });
+
+  // Init
+  async function init() {
+    await Promise.all([loadUsers(), loadTickets(), loadLogs(), loadSettings()]);
+    await writeLog('ADMIN_LOGIN', 'Admin accessed dashboard');
+  }
+  init();
+</script>
+</body>
+</html>

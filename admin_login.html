@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" type="image/x-icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQkfEQwlbpfThPXJNxH9OTOGQ4ozDnj1B3avg&s">
+  <title>Admin Login — SpendWise</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background:
+        radial-gradient(55% 45% at 10% 10%, rgba(120,170,255,0.3), transparent 60%),
+        radial-gradient(50% 45% at 92% 90%, rgba(120,210,190,0.28), transparent 60%),
+        radial-gradient(55% 45% at 85% 10%, rgba(255,190,210,0.18), transparent 60%),
+        linear-gradient(160deg, #eaf0f7 0%, #e2eaf3 100%);
+      background-attachment: fixed;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+
+    .login-container { max-width: 420px; width: 100%; }
+
+    .login-card {
+      background: rgba(255,255,255,0.6);
+      backdrop-filter: blur(28px) saturate(180%);
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+      border-radius: 32px; padding: 2.4rem 2.2rem; text-align: center;
+      box-shadow: 0 28px 55px -14px rgba(15,25,40,0.3);
+      border: 1px solid rgba(255,255,255,0.7);
+    }
+
+    .logo { display: flex; justify-content: center; align-items: center; gap: 12px; margin-bottom: 1.5rem; }
+    .logo i {
+      font-size: 2.1rem; color: #2A8074;
+      background: linear-gradient(150deg, #ffffff, #eef6f4);
+      padding: 12px; width: 66px; height: 66px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 22px;
+      box-shadow: 0 10px 20px rgba(42,128,116,0.2), inset 0 1px 1px rgba(255,255,255,0.9);
+    }
+    .logo h1 {
+      font-size: 1.7rem; font-weight: 700; letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #1f6a8c, #2A8074);
+      background-clip: text; -webkit-background-clip: text; color: transparent;
+    }
+
+    .admin-badge {
+      background: rgba(42,128,116,0.14); display: inline-block; padding: 6px 14px;
+      border-radius: 40px; font-size: 0.7rem; font-weight: 600; color: #1c5f54;
+      margin-bottom: 1.8rem; border: 1px solid rgba(42,128,116,0.15);
+    }
+
+    .input-group { margin-bottom: 1.5rem; text-align: left; }
+    .input-group label { font-size: 0.8rem; font-weight: 600; color: #2c3e44; display: block; margin-bottom: 8px; }
+    .input-group label i { margin-right: 6px; color: #2A8074; }
+
+    .passcode-input {
+      width: 100%; padding: 14px 16px; border-radius: 18px;
+      border: 1.5px solid rgba(20,50,70,0.12);
+      font-family: 'Inter', monospace; font-size: 1.3rem; letter-spacing: 3px;
+      transition: 0.2s; background: rgba(255,255,255,0.7);
+      text-align: center; font-weight: 600;
+    }
+    .passcode-input:focus {
+      outline: none; border-color: #2A8074; background: white;
+      box-shadow: 0 0 0 4px rgba(42,128,116,0.15);
+    }
+
+    .btn-login {
+      background: linear-gradient(135deg, #33917f, #1c5f54);
+      border: none; color: white; padding: 15px 20px; border-radius: 20px;
+      font-weight: 700; font-size: 1rem; width: 100%; cursor: pointer;
+      transition: 0.25s cubic-bezier(.2,.8,.2,1);
+      display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 8px;
+      box-shadow: 0 10px 24px rgba(28,95,84,0.32), inset 0 1px 1px rgba(255,255,255,0.3);
+    }
+    .btn-login:hover { transform: translateY(-2px); box-shadow: 0 16px 30px rgba(28,95,84,0.4); }
+
+    .error-message {
+      background: rgba(255,230,229,0.85); color: #c23d3d; padding: 10px;
+      border-radius: 16px; font-size: 0.8rem; margin-top: 1rem; display: none;
+      align-items: center; gap: 8px; justify-content: center;
+    }
+
+    .hint-text {
+      font-size: 0.7rem; color: #7E8C9E; margin-top: 1.2rem;
+      border-top: 1px solid rgba(20,50,70,0.08); padding-top: 1.2rem;
+    }
+
+    .back-link { display: inline-block; margin-top: 1rem; color: #2c4f6e; text-decoration: none; font-size: 0.8rem; }
+    .back-link:hover { color: #2A8074; }
+
+    @media (max-width: 480px) { .login-card { padding: 1.8rem; } }
+
+  </style>
+</head>
+<body>
+    <script>
+  // Reset admin session when on main page
+  sessionStorage.removeItem('admin_authenticated');
+  sessionStorage.removeItem('admin_login_time');
+</script>
+<div class="login-container">
+  <div class="login-card">
+    <div class="logo">
+      <i class="fas fa-shield-alt"></i>
+      <h1>SpendWise</h1>
+    </div>
+    <div class="admin-badge">
+      <i class="fas fa-lock"></i> Admin Access
+    </div>
+
+    <form id="adminLoginForm">
+      <div class="input-group">
+        <label><i class="fas fa-key"></i> Enter Passcode</label>
+        <input type="password" id="adminPasscode" class="passcode-input" placeholder="••••••" maxlength="6" autocomplete="off" inputmode="numeric">
+      </div>
+      <button type="submit" class="btn-login">
+        <i class="fas fa-sign-in-alt"></i> Access Dashboard
+      </button>
+    </form>
+
+    <div id="errorMsg" class="error-message">
+      <i class="fas fa-exclamation-circle"></i> <span>Incorrect passcode. Try again.</span>
+    </div>
+
+    <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to main app</a>
+  </div>
+</div>
+
+<script>
+  // PASSCODE
+  const ADMIN_PASSCODE = "811649";
+
+  // Check if already logged in (session storage)
+  if (sessionStorage.getItem('admin_authenticated') === 'true') {
+    window.location.href = "admin_dashboard.html";
+  }
+
+  const form = document.getElementById('adminLoginForm');
+  const passcodeInput = document.getElementById('adminPasscode');
+  const errorDiv = document.getElementById('errorMsg');
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const enteredCode = passcodeInput.value.trim();
+
+    if (enteredCode === ADMIN_PASSCODE) {
+      // Set session storage so admin is logged in for this session
+      sessionStorage.setItem('admin_authenticated', 'true');
+      sessionStorage.setItem('admin_login_time', new Date().toISOString());
+      
+      // Redirect to admin dashboard page (admin.html)
+      window.location.href = "admin_dashboard.html";
+    } else {
+      errorDiv.style.display = 'flex';
+      passcodeInput.value = '';
+      passcodeInput.focus();
+      
+      // Auto-hide error after 3 seconds
+      setTimeout(() => {
+        errorDiv.style.display = 'none';
+      }, 3000);
+    }
+  });
+
+  // Allow enter key to work naturally
+  passcodeInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      form.dispatchEvent(new Event('submit'));
+    }
+  });
+</script>
+</body>
+</html>

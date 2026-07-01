@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" type="image/x-icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQkfEQwlbpfThPXJNxH9OTOGQ4ozDnj1B3avg&s">
+  <title>SpendWise: Daily Expense Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --ink: #16222f;
+      --muted: #5b7186;
+      --accent: #2A8074;
+      --accent2: #1f6a8c;
+      --accent-dark: #1c5f54;
+      --glass: rgba(255,255,255,0.55);
+      --glass-strong: rgba(255,255,255,0.72);
+      --glass-border: rgba(255,255,255,0.65);
+      --ring: rgba(42,128,116,0.25);
+      --shadow-soft: 0 10px 30px rgba(20,50,70,0.08);
+      --shadow-lift: 0 24px 48px -16px rgba(20,50,70,0.22);
+    }
+
+    html { scroll-behavior: smooth; scroll-padding-top: 150px; }
+
+    body {
+      background:
+        radial-gradient(60% 50% at 12% 8%, rgba(120,210,190,0.35), transparent 60%),
+        radial-gradient(50% 45% at 92% 4%, rgba(120,170,255,0.28), transparent 60%),
+        radial-gradient(55% 45% at 85% 65%, rgba(255,190,210,0.22), transparent 60%),
+        radial-gradient(60% 50% at 8% 85%, rgba(150,220,255,0.28), transparent 60%),
+        linear-gradient(160deg, #eef4f9 0%, #e7eff6 100%);
+      background-attachment: fixed;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--ink);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+    /* Navbar */
+    .navbar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 20px; margin: 16px 0; flex-wrap: wrap; gap: 1rem;
+      position: sticky; top: 16px; z-index: 1000;
+      background: var(--glass);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid var(--glass-border);
+      border-radius: 28px;
+      box-shadow: var(--shadow-soft);
+    }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo i {
+      font-size: 1.5rem; color: var(--accent);
+      background: linear-gradient(145deg, #ffffff, #eef6f4);
+      width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+      border-radius: 16px;
+      box-shadow: 0 6px 16px rgba(42,128,116,0.22), inset 0 1px 1px rgba(255,255,255,0.9);
+    }
+    .logo h2 {
+      font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      background-clip: text; -webkit-background-clip: text; color: transparent;
+    }
+    .nav-links { display: flex; gap: 26px; align-items: center; }
+    .nav-links a { text-decoration: none; font-weight: 500; color: var(--muted); transition: 0.2s; font-size: 0.92rem; }
+    .nav-links a:hover { color: var(--accent); }
+    .btn-outline {
+      border: 1px solid rgba(42,128,116,0.4);
+      background: rgba(255,255,255,0.5);
+      backdrop-filter: blur(10px);
+      padding: 9px 20px; border-radius: 2rem; font-weight: 600; color: var(--accent-dark);
+      transition: 0.2s;
+    }
+    a.btn-outline:hover { background: var(--accent); color: white; border-color: var(--accent); transform: translateY(-1px); }
+    .btn-solid {
+      position: relative; overflow: hidden;
+      background: linear-gradient(135deg, rgba(51,145,127,0.68), rgba(28,95,84,0.72));
+      backdrop-filter: blur(18px) saturate(220%);
+      -webkit-backdrop-filter: blur(18px) saturate(220%);
+      border: 1px solid rgba(255,255,255,0.45); padding: 13px 28px; border-radius: 2rem; font-weight: 600; color: white;
+      cursor: pointer; transition: 0.25s cubic-bezier(.2,.8,.2,1);
+      display: inline-flex; align-items: center; gap: 8px;
+      box-shadow: 0 10px 24px rgba(28,95,84,0.35), inset 0 1px 1px rgba(255,255,255,0.55), inset 0 0 18px rgba(255,255,255,0.12);
+    }
+    .btn-solid::before {
+      content: ''; position: absolute; top: -60%; left: -20%; width: 55%; height: 220%;
+      background: linear-gradient(120deg, rgba(255,255,255,0.55), rgba(255,255,255,0) 65%);
+      transform: rotate(20deg); pointer-events: none;
+    }
+    .btn-solid > * { position: relative; z-index: 1; }
+    .btn-solid:hover { transform: translateY(-2px) scale(1.01); box-shadow: 0 16px 32px rgba(28,95,84,0.4), inset 0 1px 1px rgba(255,255,255,0.65); }
+
+    /* Hero */
+    .hero { padding: 50px 0 40px; display: flex; flex-wrap: wrap; align-items: center; gap: 40px; }
+    .hero-content {
+      flex: 1.2;
+      background-image: url('https://burst.shopifycdn.com/photos/making-a-budget-tracking-finances.jpg?width=1000&format=pjpg&exif=0&iptc=0');
+      background-size: cover; background-position: center; background-repeat: no-repeat;
+      border-radius: 36px; padding: 2.4rem 2.4rem 2.8rem; position: relative;
+      box-shadow: var(--shadow-lift);
+      border: 1px solid rgba(255,255,255,0.5);
+    }
+    .hero-content::before {
+      content: ''; position: absolute; inset: 0;
+      background: rgba(238,244,249,0.78);
+      backdrop-filter: blur(6px);
+      border-radius: 36px; z-index: 0;
+    }
+    .hero-content > * { position: relative; z-index: 1; }
+    .hero-badge {
+      background: rgba(42,128,116,0.14); backdrop-filter: blur(6px);
+      display: inline-block; padding: 7px 16px; border-radius: 40px;
+      font-size: 0.8rem; font-weight: 600; color: var(--accent-dark); margin-bottom: 1.2rem;
+      border: 1px solid rgba(42,128,116,0.15);
+    }
+    .hero h1 {
+      font-size: 3.1rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.02em;
+      margin-bottom: 1.2rem;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      background-clip: text; -webkit-background-clip: text; color: transparent;
+    }
+    .hero p { font-size: 1.08rem; color: var(--muted); margin-bottom: 2rem; max-width: 85%; }
+    .stats-row { display: flex; gap: 2rem; margin: 2rem 0 1.5rem; flex-wrap: wrap; }
+    .stat-item { text-align: left; }
+    .stat-number { font-size: 2rem; font-weight: 800; color: var(--accent2); }
+    .stat-label { font-size: 0.8rem; color: var(--muted); font-weight: 500; }
+    .hero-visual {
+      flex: 1;
+      background: var(--glass-strong);
+      border-radius: 36px; padding: 28px;
+      backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--shadow-lift);
+      text-align: center;
+    }
+    .mockup-icons { display: flex; justify-content: center; gap: 22px; margin: 20px 0; flex-wrap: wrap; }
+    .mockup-icon {
+      background: linear-gradient(150deg, #ffffff, #f0f6f4);
+      width: 68px; height: 68px; border-radius: 24px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; color: var(--accent);
+      box-shadow: 0 10px 22px rgba(20,50,70,0.1), inset 0 1px 1px rgba(255,255,255,0.9);
+      transition: transform 0.2s;
+    }
+    .mockup-icon:hover { transform: translateY(-4px) scale(1.05); }
+    .rating-stars { color: #ffb800; margin: 12px 0; font-size: 1.2rem; }
+
+    /* Features */
+    .features { padding: 70px 0; text-align: center; }
+    .section-title { font-size: 2.2rem; font-weight: 700; margin-bottom: 1rem; letter-spacing: -0.02em; color: var(--accent2); }
+    .section-sub { color: var(--muted); max-width: 650px; margin: 0 auto 3rem; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.6rem; margin-top: 20px; }
+    .feature-card {
+      background: var(--glass);
+      backdrop-filter: blur(18px) saturate(180%);
+      padding: 2.2rem 1.6rem; border-radius: 28px;
+      transition: 0.3s cubic-bezier(.2,.8,.2,1);
+      box-shadow: var(--shadow-soft);
+      border: 1px solid var(--glass-border);
+    }
+    .feature-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-lift); }
+    .feature-icon {
+      font-size: 2.1rem;
+      background: linear-gradient(150deg, #ffffff, #e9f5f2);
+      width: 66px; height: 66px; display: flex; align-items: center; justify-content: center;
+      border-radius: 24px; margin: 0 auto 1.2rem; color: var(--accent);
+      box-shadow: 0 8px 18px rgba(42,128,116,0.18), inset 0 1px 1px rgba(255,255,255,0.9);
+    }
+    .feature-card h3 { font-size: 1.3rem; margin-bottom: 0.6rem; letter-spacing: -0.01em; }
+    .feature-card p { color: var(--muted); font-size: 0.9rem; }
+
+    /* Showcase */
+    .showcase {
+      background: rgba(255,255,255,0.35);
+      backdrop-filter: blur(10px);
+      border-radius: 44px; padding: 50px 0; margin: 30px 0;
+      border: 1px solid rgba(255,255,255,0.5);
+    }
+    .screenshot-row { display: flex; justify-content: center; gap: 1.6rem; flex-wrap: wrap; margin-top: 2rem; }
+    .screenshot-card {
+      background: var(--glass-strong);
+      backdrop-filter: blur(18px);
+      border-radius: 28px; padding: 1.2rem; width: 220px; text-align: center;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid var(--glass-border);
+      transition: 0.25s;
+    }
+    .screenshot-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lift); }
+    .screenshot-card i { font-size: 3.4rem; color: var(--accent); margin-bottom: 0.8rem; }
+    .screenshot-card p { font-weight: 500; font-size: 0.85rem; }
+    .placeholder-img {
+      background: linear-gradient(150deg, #eef8f5, #dff1ec);
+      border-radius: 20px; height: 150px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1rem; font-size: 2.3rem; color: var(--accent);
+    }
+
+    /* Help center */
+    .help-center {
+      background: var(--glass-strong);
+      backdrop-filter: blur(20px) saturate(180%);
+      border-radius: 36px; padding: 3rem; margin: 60px 0; text-align: center;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid var(--glass-border);
+    }
+    .help-center h2 { font-size: 1.8rem; margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+    .help-center p { color: var(--muted); max-width: 500px; margin: 0.8rem auto 1.8rem; }
+    .footer {
+      padding: 40px 0 30px; border-top: 1px solid rgba(20,50,70,0.08);
+      display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;
+      color: var(--muted); font-size: 0.8rem;
+    }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { text-decoration: none; color: var(--accent2); }
+
+    @media (max-width: 780px) {
+      .hero h1 { font-size: 2.2rem; }
+      .container { padding: 0 20px; }
+      .navbar { flex-direction: column; border-radius: 24px; }
+      .hero-content p { max-width: 100%; }
+    }
+
+  </style>
+</head>
+<body>
+
+
+<div class="container">
+  <!-- Navigation matching SpendWise theme -->
+  <nav class="navbar">
+    <div class="logo">
+      <i class="fas fa-coins"></i>
+      <h2>SpendWise</h2>
+    </div>
+    <div class="nav-links">
+      <a href="#home">Home</a>
+      <a href="#features">Features</a>
+      <a href="#preview">Preview</a>
+      <a href="#help">Help</a>
+      <a href="login.html" class="btn-outline">Get Started →</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section (inspired by realbyteapps) -->
+  <div id="home"class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <i class="fas fa-chart-line"></i> Smart Budgeting
+      </div>
+      <h1>Bad financial management?<br>Say no more after this.</h1>
+      <p>Track expenses, manage income and gain financial clarity, all in one easeful designed space.<br>Click get started now to begin your journey towards financial freedom.</p>
+      <a href="login.html" class="btn-solid"><i class="fas fa-rocket"></i> Get Started Now</a>
+      <p style="font-size: 0.75rem; margin-top: 1rem; color:#7E8C9E;">Free & no credit card required</p>
+    </div>
+  </div>
+
+  <!-- Features highlight -->
+  <div class="features">
+    <h2 id="features" class="section-title">Designed for financial freedom</h2>
+    <p class="section-sub">Everything you need to manage money, from your daily matcha to monthly bills.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fas fa-plus-circle"></i></div>
+        <h3>Smart Entry</h3>
+        <p>Quickly add expenses or income in seconds. Manage all your transactions with ease. All in one place.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+        <h3>Analytics Dashboard</h3>
+        <p>Visual insights, spending breakdowns and export feature for your own financial reports.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fas fa-coins"></i></div>
+        <h3>Multi‑Currency</h3>
+        <p>Support for 30+ world currencies. Switch between USD, EUR, MYR and more in seconds.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fas fa-users"></i></div>
+        <h3>Collaborative Mode</h3>
+        <p>Add people to your financial circle and track others expenses. Perfect for monitoring your partner's finances.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screenshots / Preview area (realbyteapps style) -->
+  <div class="showcase">
+    <div class="container">
+      <h2 id="preview" class="section-title" style="text-align: center;">Sneak peek at SpendWise</h2>
+      <p class="section-sub" style="text-align: center;">Simple, modern, and powerful. Browse key features.</p>
+      <div class="screenshot-row">
+        <div class="screenshot-card">
+          <div class="placeholder-img">
+            <i class="fas fa-wallet fa-3x"></i>
+          </div>
+          <p><strong>Balance overview</strong><br>Real-time income vs expenses</p>
+        </div>
+        <div class="screenshot-card">
+          <div class="placeholder-img">
+            <i class="fas fa-list-ul fa-3x"></i>
+          </div>
+          <p><strong>Transaction list</strong><br>Filter by income or expense</p>
+        </div>
+        <div class="screenshot-card">
+          <div class="placeholder-img">
+            <i class="fas fa-chart-pie fa-3x"></i>
+          </div>
+          <p><strong>Expense analytics</strong><br>Insightful charts & reports</p>
+        </div>
+        <div class="screenshot-card">
+          <div class="placeholder-img">
+            <i class="fas fa-globe fa-3x"></i>
+          </div>
+          <p><strong>Currency switcher</strong><br>Global support built-in</p>
+        </div>
+      </div>
+      <div style="text-align: center; margin-top: 2rem;">
+        <span style="background: white; padding: 8px 22px; border-radius: 80px; font-size:0.85rem; box-shadow:0 5px 12px rgba(0,0,0,0.05);">
+          No downloads needed! Hassle free web access from any device.
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Help Center section inspired by realbyteapps -->
+  <div class="help-center">
+    <i class="fas fa-circle-info" style="font-size: 2.5rem; color:#2A7F6E; margin-bottom: 0.5rem; display: inline-block;"></i>
+    <h2 id="help">Help Center & Support</h2>
+    <p>Need assistance? We're here to help!</p>
+    <a href="help.html" class="btn-solid" style="background: #eef2f5; color:#2A7F6E; box-shadow: none;"><i class="fas fa-book-open"></i> Visit Help Center</a>
+    <div style="margin-top: 1.8rem; font-size: 0.8rem; color:#2c6e5b;">
+      <i class="fas fa-envelope"></i> support.spendwise6767@gmail.com
+  |  <i class="fas fa-comment"></i> Live chat Mon-Fri
+    </div>
+  </div>
+
+  <!-- Footer with cookie / simple links similar to realbyteapps vibe -->
+  <footer class="footer">
+    <div>© 2026 SpendWise: Daily Expense Tracker</div>
+    </div>
+  </footer>
+</div>
+
+<!-- Simple Cookie Consent Mock (just for demonstration) 
+     no actual storage, but styling replicates the mention from realbyteapps -->
+<div style="position: fixed; bottom: 20px; left: 20px; right: 20px; background: white; max-width: 450px; margin: 0 auto; border-radius: 60px; padding: 12px 20px; box-shadow: 0 12px 28px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; z-index: 1000; font-size: 0.8rem; border: 1px solid #e2e8f0;" id="cookieNotice">
+  <span><i class="fas fa-cookie-bite"></i> We use cookies to improve experience.</span>
+  <div>
+    <button id="acceptCookies" style="background:#2A7F6E; border:none; color:white; padding: 6px 18px; border-radius: 40px; cursor:pointer;">Accept</button>
+    <button id="declineCookies" style="background:#f1f5f9; border:none; padding: 6px 18px; border-radius: 40px; margin-left:8px; cursor:pointer;">Decline</button>
+  </div>
+</div>
+<script>
+  // Minor cookie banner simulation (Just to match the realbyteapps style but non-intrusive)
+  const cookieNotice = document.getElementById('cookieNotice');
+  if (localStorage.getItem('cookie_preference')) {
+    if (cookieNotice) cookieNotice.style.display = 'none';
+  }
+  document.getElementById('acceptCookies')?.addEventListener('click', () => {
+    localStorage.setItem('cookie_preference', 'accepted');
+    cookieNotice.style.display = 'none';
+    alert('Preferences saved.');
+  });
+  document.getElementById('declineCookies')?.addEventListener('click', () => {
+    localStorage.setItem('cookie_preference', 'declined');
+    cookieNotice.style.display = 'none';
+  });
+</script>
+</body>
+</html>

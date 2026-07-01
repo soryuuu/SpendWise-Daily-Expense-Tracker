@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <link rel="icon" type="image/x-icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQkfEQwlbpfThPXJNxH9OTOGQ4ozDnj1B3avg&s">
+  <title>SpendWise — Household Expenses</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background:
+        radial-gradient(50% 40% at 8% 6%, rgba(190,150,230,0.28), transparent 60%),
+        radial-gradient(45% 40% at 95% 0%, rgba(120,170,255,0.22), transparent 60%),
+        radial-gradient(50% 40% at 90% 90%, rgba(255,190,210,0.18), transparent 60%),
+        radial-gradient(50% 40% at 4% 92%, rgba(150,220,255,0.2), transparent 60%),
+        linear-gradient(160deg, #f0eef7 0%, #e9edf6 100%);
+      background-attachment: fixed;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      padding: 1.5rem;
+      min-height: 100vh;
+      color: #16222f;
+    }
+
+    .household-container { max-width: 1400px; margin: 0 auto; }
+
+    .header {
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 1rem; margin-bottom: 1.8rem;
+      background: rgba(255,255,255,0.55);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid rgba(255,255,255,0.65);
+      padding: 0.9rem 1.8rem; border-radius: 28px;
+      box-shadow: 0 8px 24px rgba(75,40,110,0.07);
+    }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo i {
+      font-size: 1.4rem; color: #9B59B6;
+      background: linear-gradient(150deg, #ffffff, #f5edf8);
+      width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;
+      border-radius: 16px;
+      box-shadow: 0 6px 16px rgba(155,89,182,0.22), inset 0 1px 1px rgba(255,255,255,0.9);
+    }
+    .logo h1 {
+      font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #8E44AD, #9B59B6);
+      background-clip: text; -webkit-background-clip: text; color: transparent;
+    }
+    .header-right { display: flex; align-items: center; gap: 0.8rem; }
+    .nav-btn {
+      background: rgba(255,255,255,0.65);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.6);
+      padding: 9px 20px; border-radius: 2rem; font-weight: 600; font-size: 0.85rem;
+      cursor: pointer; display: flex; align-items: center; gap: 8px;
+      text-decoration: none; color: #16222f;
+      box-shadow: 0 2px 8px rgba(20,50,70,0.05); transition: 0.2s;
+    }
+    .nav-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(20,50,70,0.1); background: white; }
+
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.1rem; margin-bottom: 1.6rem; }
+    .stat-card {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(255,255,255,0.5), rgba(255,255,255,0.22));
+      backdrop-filter: blur(30px) saturate(220%);
+      -webkit-backdrop-filter: blur(30px) saturate(220%);
+      border-radius: 22px; padding: 1.2rem 1.4rem;
+      box-shadow: 0 8px 22px rgba(75,40,110,0.06), inset 0 1px 1px rgba(255,255,255,0.9), inset 0 0 26px rgba(255,255,255,0.16);
+      border: 1px solid rgba(255,255,255,0.85);
+      display: flex; align-items: center; gap: 1rem;
+      transition: transform 0.2s;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute; top: -60%; left: -25%;
+      width: 60%; height: 220%;
+      background: linear-gradient(120deg, rgba(255,255,255,0.6), rgba(255,255,255,0) 65%);
+      transform: rotate(18deg);
+      pointer-events: none;
+    }
+    .stat-card > * { position: relative; z-index: 1; }
+    .stat-card:hover { transform: translateY(-3px); }
+    .stat-icon {
+      width: 46px; height: 46px; border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.15rem; flex-shrink: 0;
+      box-shadow: inset 0 1px 1px rgba(255,255,255,0.7);
+    }
+    .stat-icon.purple { background: linear-gradient(150deg, #f6ecf9, #ecd9f3); color: #9B59B6; }
+    .stat-icon.blue   { background: linear-gradient(150deg, #ecf3fd, #dbe9fb); color: #3B82F6; }
+    .stat-icon.green  { background: linear-gradient(150deg, #eaf7f1, #d9f0e4); color: #2A8074; }
+    .stat-icon.orange { background: linear-gradient(150deg, #fef4e3, #fce7c6); color: #F39C12; }
+    .stat-value { font-size: 1.4rem; font-weight: 700; color: #16222f; line-height: 1.1; }
+    .stat-label { font-size: 0.7rem; color: #7E8C9E; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+    .main-grid { display: grid; grid-template-columns: 1fr 360px; gap: 1.4rem; }
+    @media (max-width: 960px) { .main-grid { grid-template-columns: 1fr; } }
+
+    .section-card {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(255,255,255,0.5), rgba(255,255,255,0.22));
+      backdrop-filter: blur(30px) saturate(220%);
+      -webkit-backdrop-filter: blur(30px) saturate(220%);
+      border-radius: 24px; padding: 1.5rem; margin-bottom: 1.4rem;
+      box-shadow: 0 8px 22px rgba(75,40,110,0.06), inset 0 1px 1px rgba(255,255,255,0.9), inset 0 0 26px rgba(255,255,255,0.16);
+      border: 1px solid rgba(255,255,255,0.85);
+    }
+    .section-card::before {
+      content: '';
+      position: absolute; top: -60%; left: -25%;
+      width: 60%; height: 220%;
+      background: linear-gradient(120deg, rgba(255,255,255,0.6), rgba(255,255,255,0) 65%);
+      transform: rotate(18deg);
+      pointer-events: none;
+    }
+    .section-card > * { position: relative; z-index: 1; }
+    .section-card:last-child { margin-bottom: 0; }
+    .section-title {
+      font-size: 1rem; font-weight: 700; margin-bottom: 1.2rem; color: #1f4e6e;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-title::before {
+      content: ''; width: 4px; height: 16px; border-radius: 4px;
+      background: linear-gradient(180deg, #9B59B6, #8E44AD); display: inline-block;
+    }
+
+    .filter-bar { display: flex; gap: 0.5rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+    .filter-btn {
+      background: rgba(255,255,255,0.55); border: 1px solid rgba(20,50,70,0.06);
+      padding: 6px 16px; border-radius: 30px; font-weight: 500; font-size: 0.78rem;
+      cursor: pointer; color: #2c4f6e; transition: 0.18s;
+    }
+    .filter-btn.active {
+      background: linear-gradient(135deg, #9B59B6, #8E44AD); color: white; border-color: transparent;
+      box-shadow: 0 6px 14px rgba(142,68,173,0.28);
+    }
+    .filter-btn:hover:not(.active) { background: rgba(243,232,247,0.8); }
+
+    .txn-list { max-height: 480px; overflow-y: auto; padding-right: 4px; }
+    .txn-list::-webkit-scrollbar { width: 4px; }
+    .txn-list::-webkit-scrollbar-thumb { background: rgba(155,89,182,0.3); border-radius: 4px; }
+
+    .txn-day-group { margin-bottom: 1.2rem; }
+    .txn-day-label {
+      font-size: 0.72rem; font-weight: 700; color: #9B59B6; text-transform: uppercase;
+      letter-spacing: 0.06em; margin-bottom: 0.5rem; padding: 4px 10px;
+      background: rgba(249,242,252,0.9); border-radius: 8px; display: inline-block;
+    }
+
+    .txn-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(20,50,70,0.05); transition: background 0.15s; }
+    .txn-item:last-child { border-bottom: none; }
+    .txn-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: linear-gradient(150deg, #f6ecf9, #ecd9f3);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.85rem; color: #9B59B6; flex-shrink: 0;
+    }
+    .txn-info { flex: 1; min-width: 0; }
+    .txn-desc { font-weight: 600; font-size: 0.9rem; color: #16222f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .txn-meta { font-size: 0.7rem; color: #7E8C9E; margin-top: 2px; }
+    .txn-member-name { font-weight: 600; color: #9B59B6; }
+    .txn-amount { font-weight: 700; font-size: 0.95rem; color: #D35C5C; white-space: nowrap; }
+    .txn-detail-toggle { background: none; border: none; color: #b9c3d0; cursor: pointer; font-size: 0.9rem; padding: 4px 6px; transition: color 0.15s; }
+    .txn-detail-toggle:hover { color: #9B59B6; }
+    .txn-detail-panel {
+      background: rgba(250,247,253,0.9); border-radius: 14px; padding: 10px 14px; font-size: 0.78rem;
+      color: #5b6f82; margin: 4px 0 8px 50px; display: none; border-left: 3px solid #d4a8e8;
+    }
+    .txn-detail-panel.open { display: block; }
+    .txn-detail-row { display: flex; justify-content: space-between; padding: 2px 0; }
+
+    .empty-state { text-align: center; padding: 2.5rem 1rem; color: #94a3b8; }
+    .empty-state i { font-size: 2rem; margin-bottom: 0.6rem; display: block; }
+
+    .member-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(20,50,70,0.05); }
+    .member-row:last-child { border-bottom: none; }
+    .member-info { display: flex; align-items: center; gap: 10px; }
+    .member-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, #9B59B6, #8E44AD);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.8rem; color: white; flex-shrink: 0;
+      box-shadow: 0 4px 10px rgba(142,68,173,0.28);
+    }
+    .member-name-text { font-weight: 600; font-size: 0.9rem; }
+    .member-sub { font-size: 0.7rem; color: #7E8C9E; }
+    .remove-member-btn {
+      background: rgba(255,230,229,0.85); border: none; color: #D35C5C;
+      width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; font-size: 0.75rem; transition: 0.15s;
+    }
+    .remove-member-btn:hover { background: rgba(255,208,206,0.95); transform: scale(1.1); }
+
+    .join-code-box {
+      margin-top: 1.2rem;
+      background: linear-gradient(135deg, rgba(249,242,253,0.85), rgba(243,232,247,0.85));
+      border: 1.5px dashed rgba(201,141,224,0.6);
+      border-radius: 20px; padding: 1rem 1.2rem;
+    }
+    .join-code-label {
+      font-size: 0.7rem; font-weight: 700; color: #8E44AD; text-transform: uppercase;
+      letter-spacing: 0.06em; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 6px;
+    }
+    .join-code-display { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; }
+    .join-code-value { font-size: 1.5rem; font-weight: 800; letter-spacing: 0.22em; color: #6C3483; font-variant-numeric: tabular-nums; flex: 1; }
+    .copy-code-btn {
+      background: linear-gradient(135deg, #9B59B6, #8E44AD); color: white; border: none;
+      padding: 7px 14px; border-radius: 12px; font-size: 0.78rem; font-weight: 600;
+      cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.18s; white-space: nowrap;
+      box-shadow: 0 6px 14px rgba(142,68,173,0.28);
+    }
+    .copy-code-btn:hover { transform: translateY(-1px); }
+    .copy-code-btn.copied { background: linear-gradient(135deg, #33917f, #1c5f54); }
+    .join-code-hint { font-size: 0.68rem; color: #9B59B6; margin-top: 0.5rem; opacity: 0.8; }
+
+    .no-results { text-align: center; padding: 1.5rem; color: #94a3b8; font-size: 0.85rem; }
+
+    footer { margin-top: 2rem; text-align: center; font-size: 0.7rem; color: #6f8faa; }
+
+  </style>
+</head>
+<body>
+<div class="household-container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <i class="fas fa-home"></i>
+      <h1>Household Expenses</h1>
+    </div>
+    <div class="header-right">
+      <button class="nav-btn" onclick="window.location.href='main.html'">
+        <i class="fas fa-coins"></i> Personal
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="stats-row" id="statsRow">
+    <div class="stat-card">
+      <div class="stat-icon purple"><i class="fas fa-users"></i></div>
+      <div class="stat-body">
+        <div class="stat-value" id="statMembers">0</div>
+        <div class="stat-label">Members</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon blue"><i class="fas fa-calendar-day"></i></div>
+      <div class="stat-body">
+        <div class="stat-value" id="statToday">$0.00</div>
+        <div class="stat-label">Today's Total</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="fas fa-calendar-alt"></i></div>
+      <div class="stat-body">
+        <div class="stat-value" id="statMonth">$0.00</div>
+        <div class="stat-label">This Month</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon orange"><i class="fas fa-receipt"></i></div>
+      <div class="stat-body">
+        <div class="stat-value" id="statTxnCount">0</div>
+        <div class="stat-label">Transactions</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Grid -->
+  <div class="main-grid">
+
+    <!-- LEFT: Transaction History -->
+    <div>
+      <div class="section-card">
+        <div class="section-title"><i class="fas fa-history"></i> Transaction History</div>
+
+        <!-- Filter bar -->
+        <div class="filter-bar">
+          <button class="filter-btn active" data-filter="today">Today</button>
+          <button class="filter-btn" data-filter="yesterday">Yesterday</button>
+          <button class="filter-btn" data-filter="week">This Week</button>
+          <button class="filter-btn" data-filter="month">This Month</button>
+          <button class="filter-btn" data-filter="all">All Time</button>
+        </div>
+
+        <!-- Transactions list -->
+        <div class="txn-list" id="txnList">
+          <div class="empty-state">
+            <i class="fas fa-receipt"></i>
+            No household expenses yet. Add members and start tracking!
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Members only -->
+    <div class="right-col">
+
+      <!-- Manage Members -->
+      <div class="section-card">
+        <div class="section-title"><i class="fas fa-user-friends"></i> Manage Members</div>
+
+        <!-- Household Join Code -->
+        <div class="join-code-box">
+          <div class="join-code-label"><i class="fas fa-key"></i> Household Join Code</div>
+          <div class="join-code-display">
+            <div class="join-code-value" id="joinCodeValue">——</div>
+            <button class="copy-code-btn" id="copyCodeBtn">
+              <i class="fas fa-copy"></i> Copy
+            </button>
+          </div>
+          <div class="join-code-hint">Share this code with people you want to invite. Each household has a unique code.</div>
+        </div>
+
+        <div style="margin-top: 1.2rem;" id="membersList">
+          <div class="no-results">No members yet.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>SpendWise Household — Track shared expenses together</footer>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import {
+    getFirestore, collection, doc, getDoc, setDoc, getDocs,
+    updateDoc, deleteDoc, arrayUnion, arrayRemove,
+    query, where, orderBy, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyC0BnVATHYNbRSUKorbfGN6-6-h6fNv2gY",
+    authDomain: "spendwise-6767.firebaseapp.com",
+    projectId: "spendwise-6767",
+    storageBucket: "spendwise-6767.firebasestorage.app",
+    messagingSenderId: "786309362149",
+    appId: "1:786309362149:web:1a419faed45135411e7f0c"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUser = null;
+  let currentHouseholdId = null;
+  let householdData = null;
+  let allTransactions = [];
+  let currentFilter = 'today';
+
+  // ── Currency ──
+  function getSymbol() {
+    const saved = localStorage.getItem('spendwise_currency');
+    const map = { USD:'$', EUR:'€', GBP:'£', MYR:'RM', INR:'₹', CAD:'C$', AUD:'A$', SGD:'S$', JPY:'¥', KRW:'₩', THB:'฿', IDR:'Rp' };
+    return map[saved] || '$';
+  }
+
+  // ── Date helpers ──
+  function toDateStr(iso) { return iso ? iso.substring(0,10) : ''; }
+  function todayStr() { return new Date().toISOString().substring(0,10); }
+  function yesterdayStr() { const d = new Date(); d.setDate(d.getDate()-1); return d.toISOString().substring(0,10); }
+  function thisWeekStart() { const d = new Date(); d.setDate(d.getDate() - d.getDay()); return d.toISOString().substring(0,10); }
+  function thisMonthStr() { return new Date().toISOString().substring(0,7); }
+
+  function filterTransactions(filter) {
+    const today = todayStr(), yesterday = yesterdayStr();
+    const weekStart = thisWeekStart(), month = thisMonthStr();
+    return allTransactions.filter(t => {
+      const d = toDateStr(t.date);
+      if (filter === 'today')     return d === today;
+      if (filter === 'yesterday') return d === yesterday;
+      if (filter === 'week')      return d >= weekStart;
+      if (filter === 'month')     return d.startsWith(month);
+      return true;
+    });
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '';
+    return new Date(iso).toLocaleDateString('en-MY', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+  }
+  function formatTime(iso) {
+    if (!iso) return '';
+    return new Date(iso).toLocaleTimeString('en-MY', { hour:'2-digit', minute:'2-digit' });
+  }
+  function groupByDay(txns) {
+    const groups = {};
+    [...txns].sort((a,b) => new Date(b.date)-new Date(a.date)).forEach(t => {
+      const day = toDateStr(t.date);
+      if (!groups[day]) groups[day] = [];
+      groups[day].push(t);
+    });
+    return groups;
+  }
+  function getInitial(name) { return (name||'?').charAt(0).toUpperCase(); }
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  const catEmoji = {
+    'Food & Dining':'🍔','Shopping':'🛍️','Transport':'🚗','Entertainment':'🎬',
+    'Bills & Utilities':'💡','Income':'💼','Other':'📌'
+  };
+
+  // ─────────────────────────────────────────
+  // FIRESTORE: Create a new household
+  // ─────────────────────────────────────────
+  async function createHousehold(user) {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const code = Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+
+    const householdRef = doc(collection(db, 'households'));
+    const householdId = householdRef.id;
+
+    const memberData = {
+      uid: user.uid,
+      name: user.displayName || user.email.split('@')[0],
+      email: user.email,
+      joinedAt: new Date().toISOString(),
+      role: 'creator'
+    };
+
+    await setDoc(householdRef, {
+      householdId,
+      joinCode: code,
+      createdBy: user.uid,
+      createdAt: serverTimestamp(),
+      memberUids: [user.uid],
+      members: [memberData]
+    });
+
+    // Tag this user as belonging to this household
+    await setDoc(doc(db, 'users', user.uid), { householdId }, { merge: true });
+
+    console.log('✅ Household created:', householdId, '| Code:', code);
+    return householdId;
+  }
+
+  // ─────────────────────────────────────────
+  // FIRESTORE: Join an existing household by code
+  // ─────────────────────────────────────────
+  async function joinHousehold(user, code) {
+    const cleanCode = code.toUpperCase().replace(/\s/g, '');
+    try {
+      const q = query(collection(db, 'households'), where('joinCode', '==', cleanCode));
+      const snap = await getDocs(q);
+
+      if (snap.empty) {
+        alert('Invalid join code. Please check and try again.');
+        window.location.href = 'main.html';
+        return null;
+      }
+
+      const householdDoc = snap.docs[0];
+      const householdId = householdDoc.id;
+      const data = householdDoc.data();
+
+      // Already a member — just link their user doc and continue
+      if (data.memberUids && data.memberUids.includes(user.uid)) {
+        await setDoc(doc(db, 'users', user.uid), { householdId }, { merge: true });
+        return householdId;
+      }
+
+      const memberData = {
+        uid: user.uid,
+        name: user.displayName || user.email.split('@')[0],
+        email: user.email,
+        joinedAt: new Date().toISOString(),
+        role: 'member'
+      };
+
+      // arrayUnion works for primitive strings (memberUids)
+      // For objects (members array), manually push to avoid arrayUnion deep-equality issues
+      const updatedMembers = [...(data.members || []), memberData];
+
+      await updateDoc(householdDoc.ref, {
+        memberUids: arrayUnion(user.uid),   // safe — strings only
+        members: updatedMembers             // replace full array with new member added
+      });
+
+      // Tag this user as belonging to this household
+      await setDoc(doc(db, 'users', user.uid), { householdId }, { merge: true });
+
+      console.log('✅ Joined household:', householdId);
+      return householdId;
+    } catch(e) {
+      console.error('joinHousehold error:', e);
+      if (e.code === 'permission-denied') {
+        alert('Permission denied. Make sure your Firestore rules allow joining. See console for details.');
+      } else {
+        alert('Failed to join household. Please try again.');
+      }
+      window.location.href = 'main.html';
+      return null;
+    }
+  }
+
+  // ─────────────────────────────────────────
+  // FIRESTORE: Load household document
+  // ─────────────────────────────────────────
+  async function loadHousehold() {
+    const snap = await getDoc(doc(db, 'households', currentHouseholdId));
+
+    // Household doc doesn't exist at all
+    if (!snap.exists()) {
+      await setDoc(doc(db, 'users', currentUser.uid), { householdId: null }, { merge: true });
+      alert('This household has been dissolved by the owner.');
+      window.location.href = 'main.html';
+      return;
+    }
+
+    householdData = snap.data();
+
+    // Household marked as dissolved (creator used updateDoc instead of deleteDoc)
+    if (householdData.dissolved) {
+      await setDoc(doc(db, 'users', currentUser.uid), { householdId: null }, { merge: true });
+      alert('This household has been dissolved by the owner.');
+      window.location.href = 'main.html';
+      return;
+    }
+
+    // Current user is no longer in memberUids — they were kicked
+    if (!householdData.memberUids || !householdData.memberUids.includes(currentUser.uid)) {
+      await setDoc(doc(db, 'users', currentUser.uid), { householdId: null }, { merge: true });
+      alert('You have been removed from this household.');
+      window.location.href = 'main.html';
+      return;
+    }
+  }
+
+  // ─────────────────────────────────────────
+  // FIRESTORE: Load all household transactions
+  // ─────────────────────────────────────────
+  async function loadHouseholdTransactions() {
+    allTransactions = [];
+    try {
+      const q = query(
+        collection(db, 'households', currentHouseholdId, 'transactions'),
+        orderBy('date', 'desc')
+      );
+      const snap = await getDocs(q);
+      snap.forEach(d => allTransactions.push({ id: d.id, ...d.data() }));
+      console.log('✅ Loaded', allTransactions.length, 'household transactions');
+    } catch(e) {
+      console.error('Failed to load household transactions:', e);
+    }
+  }
+
+  // ─────────────────────────────────────────
+  // FIRESTORE: Remove a member (creator only)
+  // ─────────────────────────────────────────
+  async function removeMember(uid) {
+    if (householdData.createdBy !== currentUser.uid) return;
+    if (uid === currentUser.uid) return;
+
+    const member = householdData.members.find(m => m.uid === uid);
+    if (!member || !confirm(`Remove "${member.name}" from the household?`)) return;
+
+    try {
+      // Remove from household doc — strings use arrayRemove, objects use manual filter
+      const updatedMembers = householdData.members.filter(m => m.uid !== uid);
+      await updateDoc(doc(db, 'households', currentHouseholdId), {
+        memberUids: arrayRemove(uid),
+        members: updatedMembers
+      });
+
+      // NOTE: We cannot write to another user's Firestore document (rules block it).
+      // The removed user will self-clean their householdId the next time they
+      // visit collaboration.html and loadHousehold() detects they're not in memberUids.
+
+      await loadHousehold();
+      renderAll();
+    } catch(e) {
+      console.error('removeMember error:', e);
+      alert('Failed to remove member. Please try again.');
+    }
+  }
+  window.removeMember = removeMember;
+
+  // ─────────────────────────────────────────
+  // FIRESTORE: Leave household
+  // ─────────────────────────────────────────
+  async function leaveHousehold() {
+    if (!confirm('Are you sure you want to leave this household?')) return;
+
+    const isCreator = householdData.createdBy === currentUser.uid;
+
+    try {
+      if (isCreator) {
+        if (!confirm('As the owner, leaving will dissolve the household for ALL members. Continue?')) return;
+        // Mark household as dissolved via updateDoc (avoids needing delete permission in Firestore rules).
+        // Other members will detect dissolved:true on their next visit and self-clean.
+        await updateDoc(doc(db, 'households', currentHouseholdId), {
+          dissolved: true,
+          dissolvedAt: serverTimestamp(),
+          dissolvedBy: currentUser.uid
+        });
+        // Clear only our own householdId
+        await setDoc(doc(db, 'users', currentUser.uid), { householdId: null }, { merge: true });
+      } else {
+        // Regular member leaving — update household and clear own householdId
+        const updatedMembers = householdData.members.filter(m => m.uid !== currentUser.uid);
+        await updateDoc(doc(db, 'households', currentHouseholdId), {
+          memberUids: arrayRemove(currentUser.uid),
+          members: updatedMembers
+        });
+        await setDoc(doc(db, 'users', currentUser.uid), { householdId: null }, { merge: true });
+      }
+      window.location.href = 'main.html';
+    } catch(e) {
+      console.error('leaveHousehold error:', e);
+      alert('Failed to leave household. Please try again.');
+    }
+  }
+
+  // ─────────────────────────────────────────
+  // RENDER: Stats row
+  // ─────────────────────────────────────────
+  function renderStats() {
+    const sym = getSymbol();
+    const today = todayStr(), month = thisMonthStr();
+
+    const todayTotal = allTransactions
+      .filter(t => t.type !== 'income' && toDateStr(t.date) === today)
+      .reduce((s,t) => s + t.amount, 0);
+
+    const monthTotal = allTransactions
+      .filter(t => t.type !== 'income' && toDateStr(t.date).startsWith(month))
+      .reduce((s,t) => s + t.amount, 0);
+
+    document.getElementById('statMembers').textContent = householdData?.members?.length || 0;
+    document.getElementById('statToday').textContent = sym + todayTotal.toFixed(2);
+    document.getElementById('statMonth').textContent = sym + monthTotal.toFixed(2);
+    document.getElementById('statTxnCount').textContent = allTransactions.length;
+  }
+
+  // ─────────────────────────────────────────
+  // RENDER: Transaction history
+  // ─────────────────────────────────────────
+  function renderTransactions() {
+    const sym = getSymbol();
+    const filtered = filterTransactions(currentFilter);
+    const container = document.getElementById('txnList');
+
+    if (filtered.length === 0) {
+      const labels = { today:'today', yesterday:'yesterday', week:'this week', month:'this month', all:'' };
+      container.innerHTML = `<div class="empty-state"><i class="fas fa-receipt"></i>No transactions ${labels[currentFilter] ? 'for ' + labels[currentFilter] : 'yet'}.</div>`;
+      return;
+    }
+
+    const groups = groupByDay(filtered);
+    let html = '';
+
+    Object.keys(groups).forEach(day => {
+      const isToday = day === todayStr(), isYesterday = day === yesterdayStr();
+      const labelDate = new Date(day + 'T00:00:00');
+      const dayLabel = isToday ? 'Today' : isYesterday ? 'Yesterday'
+        : labelDate.toLocaleDateString('en-MY', { weekday:'long', day:'numeric', month:'long' });
+      const dayTotal = groups[day].filter(t => t.type !== 'income').reduce((s,t) => s+t.amount, 0);
+
+      html += `<div class="txn-day-group">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;">
+          <span class="txn-day-label">${escapeHtml(dayLabel)}</span>
+          <span style="font-size:0.75rem;font-weight:600;color:#9B59B6;">${sym}${dayTotal.toFixed(2)}</span>
+        </div>`;
+
+      groups[day].forEach(txn => {
+        const memberName = txn.memberName || 'Unknown';
+        const emoji = catEmoji[txn.category] || '📌';
+        const tid = 'tx-' + txn.id.replace(/[^a-zA-Z0-9]/g,'');
+        const isIncome = txn.type === 'income';
+        const amtColor = isIncome ? '#2C8A5E' : '#D35C5C';
+        const amtSign = isIncome ? '+' : '-';
+
+        html += `
+          <div class="txn-item">
+            <div class="txn-avatar">${getInitial(memberName)}</div>
+            <div class="txn-info">
+              <div class="txn-desc">${escapeHtml(txn.description)}</div>
+              <div class="txn-meta">
+                ${emoji} ${escapeHtml(txn.category)} &nbsp;·&nbsp;
+                By <span class="txn-member-name">${escapeHtml(memberName)}</span>
+                &nbsp;·&nbsp; ${formatTime(txn.date)}
+              </div>
+            </div>
+            <div class="txn-amount" style="color:${amtColor}">${amtSign}${sym}${txn.amount.toFixed(2)}</div>
+            <button class="txn-detail-toggle" onclick="toggleDetail('${tid}')" title="Details">
+              <i class="fas fa-chevron-down"></i>
+            </button>
+          </div>
+          <div class="txn-detail-panel" id="${tid}">
+            <div class="txn-detail-row"><span>📋 Description</span><span>${escapeHtml(txn.description)}</span></div>
+            <div class="txn-detail-row"><span>💰 Amount</span><span>${sym}${txn.amount.toFixed(2)}</span></div>
+            <div class="txn-detail-row"><span>${emoji} Category</span><span>${escapeHtml(txn.category)}</span></div>
+            <div class="txn-detail-row"><span>👤 By</span><span>${escapeHtml(memberName)}</span></div>
+            <div class="txn-detail-row"><span>📅 Date</span><span>${formatDate(txn.date)}</span></div>
+          </div>`;
+      });
+
+      html += `</div>`;
+    });
+
+    container.innerHTML = html;
+  }
+
+  function toggleDetail(id) {
+    const panel = document.getElementById(id);
+    if (!panel) return;
+    panel.classList.toggle('open');
+    const btn = panel.previousElementSibling?.querySelector('.txn-detail-toggle i');
+    if (btn) { btn.classList.toggle('fa-chevron-down'); btn.classList.toggle('fa-chevron-up'); }
+  }
+  window.toggleDetail = toggleDetail;
+
+  // ─────────────────────────────────────────
+  // RENDER: Members list
+  // ─────────────────────────────────────────
+  function renderMembers() {
+    const container = document.getElementById('membersList');
+    const members = householdData?.members || [];
+    const isCreator = householdData?.createdBy === currentUser.uid;
+    const sym = getSymbol();
+
+    if (members.length === 0) {
+      container.innerHTML = '<div class="no-results">No members yet. Share the join code to invite people.</div>';
+      return;
+    }
+
+    container.innerHTML = members.map(m => {
+      const txnCount = allTransactions.filter(t => t.memberUid === m.uid).length;
+      const totalSpent = allTransactions
+        .filter(t => t.memberUid === m.uid && t.type !== 'income')
+        .reduce((s,t) => s + t.amount, 0);
+      const isYou = m.uid === currentUser.uid;
+      const memberIsCreator = m.uid === householdData.createdBy;
+
+      const ownerBadge = memberIsCreator
+        ? '<span style="font-size:0.65rem;background:#f3e8f7;color:#9B59B6;padding:1px 7px;border-radius:8px;font-weight:600;margin-left:4px;">Owner</span>' : '';
+      const youBadge = isYou
+        ? '<span style="font-size:0.65rem;background:#e8f0fc;color:#3B82F6;padding:1px 7px;border-radius:8px;font-weight:600;margin-left:4px;">You</span>' : '';
+
+      let actionBtn = '';
+      if (isYou) {
+        actionBtn = `<span style="font-size:0.68rem;color:#b9c3d0;font-style:italic;">—</span>`;
+      } else if (isCreator) {
+        actionBtn = `<button class="remove-member-btn" onclick="removeMember('${m.uid}')" title="Remove member"><i class="fas fa-times"></i></button>`;
+      }
+
+      return `
+        <div class="member-row">
+          <div class="member-info">
+            <div class="member-avatar">${getInitial(m.name)}</div>
+            <div>
+              <div class="member-name-text">${escapeHtml(m.name)}${ownerBadge}${youBadge}</div>
+              <div class="member-sub">${txnCount} txn${txnCount!==1?'s':''} · ${sym}${totalSpent.toFixed(2)} spent</div>
+            </div>
+          </div>
+          ${actionBtn}
+        </div>`;
+    }).join('');
+  }
+
+  // ─────────────────────────────────────────
+  // RENDER: Join code box
+  // ─────────────────────────────────────────
+  function renderJoinCode() {
+    const code = householdData?.joinCode || '——';
+    const formatted = code.length === 6 ? code.substring(0,3) + ' ' + code.substring(3) : code;
+    document.getElementById('joinCodeValue').textContent = formatted;
+  }
+
+  function renderAll() {
+    renderStats();
+    renderTransactions();
+    renderMembers();
+    renderJoinCode();
+  }
+
+  // ─────────────────────────────────────────
+  // Copy join code button
+  // ─────────────────────────────────────────
+  document.getElementById('copyCodeBtn').addEventListener('click', () => {
+    const code = householdData?.joinCode || '';
+    navigator.clipboard.writeText(code).then(() => {
+      const btn = document.getElementById('copyCodeBtn');
+      btn.classList.add('copied');
+      btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+      setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = '<i class="fas fa-copy"></i> Copy'; }, 2000);
+    }).catch(() => prompt('Copy this code:', code));
+  });
+
+  // ─────────────────────────────────────────
+  // Filter buttons
+  // ─────────────────────────────────────────
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      renderTransactions();
+    });
+  });
+
+  // ─────────────────────────────────────────
+  // AUTH GATE + INIT
+  // ─────────────────────────────────────────
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = 'login.html'; return; }
+    currentUser = user;
+    await init(user);
+  });
+
+  async function init(user) {
+    // Check if user already belongs to a household
+    const userSnap = await getDoc(doc(db, 'users', user.uid));
+    const userData = userSnap.exists() ? userSnap.data() : {};
+    let householdId = userData.householdId || null;
+
+    if (!householdId) {
+      // Coming from main.html with a role set in localStorage
+      const role = localStorage.getItem('spendwise_collab_role');
+      const joinedCode = localStorage.getItem('spendwise_joined_code');
+
+      if (role === 'creator') {
+        householdId = await createHousehold(user);
+      } else if (role === 'member' && joinedCode) {
+        householdId = await joinHousehold(user, joinedCode);
+      }
+
+      localStorage.removeItem('spendwise_collab_role');
+      localStorage.removeItem('spendwise_joined_code');
+      localStorage.removeItem('spendwise_household_id');
+    }
+
+    if (!householdId) {
+      alert('No household found. Please create or join one from the main page.');
+      window.location.href = 'main.html';
+      return;
+    }
+
+    currentHouseholdId = householdId;
+    await loadHousehold();
+    await loadHouseholdTransactions();
+    renderAll();
+
+    // Add Leave button to header
+    const headerRight = document.querySelector('.header-right');
+    if (headerRight && !document.getElementById('leaveBtn')) {
+      const leaveBtn = document.createElement('button');
+      leaveBtn.id = 'leaveBtn';
+      leaveBtn.className = 'nav-btn';
+      leaveBtn.style.color = '#D35C5C';
+      leaveBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Leave Household';
+      leaveBtn.addEventListener('click', leaveHousehold);
+      headerRight.appendChild(leaveBtn);
+    }
+  }
+</script>
+</body>
+</html>
