@@ -188,7 +188,28 @@
         <input type="password" id="loginPassword" placeholder="••••••••" required>
       </div>
       <button type="submit" class="btn-primary">Sign In</button>
+      <div style="text-align:right;margin-top:8px;">
+        <button type="button" id="forgotPasswordBtn" style="background:none;border:none;color:#2A7F6E;font-size:0.78rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;padding:0;">
+          Forgot password?
+        </button>
+      </div>
     </form>
+
+    <!-- Forgot Password inline panel — hidden until forgotPasswordBtn clicked -->
+    <div id="forgotPanel" style="display:none;margin-top:0.6rem;">
+      <div class="input-group">
+        <label><i class="fas fa-envelope"></i> Enter your email to reset password</label>
+        <input type="email" id="resetEmail" placeholder="you@example.com">
+      </div>
+      <button type="button" id="sendResetBtn" class="btn-primary" style="margin-top:0;">
+        <i class="fas fa-paper-plane"></i> Send Reset Link
+      </button>
+      <div style="text-align:center;margin-top:8px;">
+        <button type="button" id="cancelResetBtn" style="background:none;border:none;color:#7a94ae;font-size:0.78rem;cursor:pointer;font-family:'Inter',sans-serif;">
+          Cancel
+        </button>
+      </div>
+    </div>
 
     <!-- Signup Form -->
     <form id="signupForm" class="form">
@@ -235,6 +256,7 @@
     GoogleAuthProvider, 
     createUserWithEmailAndPassword, 
     signInWithEmailAndPassword,
+    sendPasswordResetEmail,
     updateProfile
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
   import { 
@@ -419,6 +441,65 @@
   });
   
   console.log("✅ Firebase ready - Will save users to Firestore 'users' collection");
+
+  // ── Forgot Password ──
+  const forgotBtn  = document.getElementById('forgotPasswordBtn');
+  const forgotPanel = document.getElementById('forgotPanel');
+  const sendResetBtn = document.getElementById('sendResetBtn');
+  const cancelResetBtn = document.getElementById('cancelResetBtn');
+  const resetEmailInput = document.getElementById('resetEmail');
+
+  forgotBtn.addEventListener('click', () => {
+    forgotPanel.style.display = 'block';
+    forgotBtn.style.display = 'none';
+    // Pre-fill with whatever they typed in loginEmail
+    const emailVal = document.getElementById('loginEmail').value.trim();
+    if (emailVal) resetEmailInput.value = emailVal;
+    resetEmailInput.focus();
+  });
+
+  cancelResetBtn.addEventListener('click', () => {
+    forgotPanel.style.display = 'none';
+    forgotBtn.style.display = 'inline-block';
+    resetEmailInput.value = '';
+    errorDiv.style.display = 'none';
+    successDiv.style.display = 'none';
+  });
+
+  sendResetBtn.addEventListener('click', async () => {
+    const email = resetEmailInput.value.trim();
+    if (!email) { showError('Enter your email address.'); return; }
+
+    sendResetBtn.disabled = true;
+    sendResetBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+    try {
+      await sendPasswordResetEmail(auth, email);
+      showSuccess(`Reset link sent to ${email}. Check your inbox (and spam folder).`);
+      // Hide the panel after success
+      setTimeout(() => {
+        forgotPanel.style.display = 'none';
+        forgotBtn.style.display = 'inline-block';
+        resetEmailInput.value = '';
+      }, 3500);
+    } catch (error) {
+      if (error.code === 'auth/user-not-found') {
+        showError('No account found with that email.');
+      } else if (error.code === 'auth/invalid-email') {
+        showError('Invalid email address.');
+      } else {
+        showError('Failed to send reset link. Try again.');
+      }
+    } finally {
+      sendResetBtn.disabled = false;
+      sendResetBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Reset Link';
+    }
+  });
+
+  // Allow Enter in reset email field
+  resetEmailInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendResetBtn.click();
+  });
 </script>
 </body>
 </html>

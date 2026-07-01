@@ -574,6 +574,26 @@
     alert(`Default currency set to ${curr}`);
   });
 
+  // Track any pending scheduled maintenance timer so we can cancel it if cleared
+  let scheduledMaintenanceTimer = null;
+
+  function startMaintenanceCountdown(scheduledTime) {
+    if (scheduledMaintenanceTimer) clearTimeout(scheduledMaintenanceTimer);
+    const delay = scheduledTime - Date.now();
+    if (delay <= 0) return; // already passed
+    scheduledMaintenanceTimer = setTimeout(async () => {
+      // Time reached — enable maintenance in Firestore and refresh the UI
+      await setDoc(SETTINGS_DOC, {
+        maintenanceMode: true,
+        scheduledMaintenanceEnabled: false,
+        scheduledMaintenance: null,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      await writeLog('ADMIN_AUTO_MAINTENANCE', 'Maintenance mode auto-enabled by schedule');
+      await loadSettings(); // refresh badge + button UI immediately
+    }, delay);
+  }
+
   document.getElementById('setMaintenanceHourBtn')?.addEventListener('click', async () => {
     const val = document.getElementById('maintenanceHourInput').value;
     if (!val) { alert('Pick a datetime first.'); return; }
@@ -593,15 +613,23 @@
     }, { merge: true });
     await writeLog('ADMIN_SCHEDULE_MAINTENANCE', `Maintenance scheduled for ${val}`);
 
+    // Start the client-side timer so this tab's UI updates when time arrives
+    startMaintenanceCountdown(scheduledTime);
+
     const formatted = scheduledTime.toLocaleString('en-MY', {
       weekday:'short', day:'numeric', month:'short', year:'numeric',
       hour:'2-digit', minute:'2-digit'
     });
-    alert(`Maintenance scheduled for ${formatted}.\nThe app will automatically enter maintenance mode at that time.`);
+    alert(`Maintenance scheduled for ${formatted}.\nThe dashboard will automatically update when it starts.`);
   });
 
   // Clear scheduled maintenance
   document.getElementById('clearScheduleBtn')?.addEventListener('click', async () => {
+    // Cancel client-side timer if running
+    if (scheduledMaintenanceTimer) {
+      clearTimeout(scheduledMaintenanceTimer);
+      scheduledMaintenanceTimer = null;
+    }
     await setDoc(SETTINGS_DOC, { scheduledMaintenance: null, scheduledMaintenanceEnabled: false }, { merge: true });
     await writeLog('ADMIN_CLEAR_SCHEDULE', 'Scheduled maintenance cleared');
     document.getElementById('maintenanceHourInput').value = '';
@@ -634,6 +662,21 @@
   async function init() {
     await Promise.all([loadUsers(), loadTickets(), loadLogs(), loadSettings()]);
     await writeLog('ADMIN_LOGIN', 'Admin accessed dashboard');
+
+    // Resume countdown if there's a future scheduled maintenance (handles page reload)
+    try {
+      const snap = await getDoc(SETTINGS_DOC);
+      if (snap.exists()) {
+        const d = snap.data();
+        if (d.scheduledMaintenanceEnabled && d.scheduledMaintenance && !d.maintenanceMode) {
+          const t = new Date(d.scheduledMaintenance);
+          if (t > new Date()) {
+            startMaintenanceCountdown(t);
+            console.log('⏱ Maintenance countdown resumed for:', d.scheduledMaintenance);
+          }
+        }
+      }
+    } catch(e) { console.warn('Could not resume maintenance timer:', e); }
   }
   init();
 </script>
