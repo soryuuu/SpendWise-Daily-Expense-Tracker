@@ -265,7 +265,7 @@
       <div class="card-title"><i class="fas fa-ticket-alt"></i> User Support Tickets</div>
       <div class="table-responsive">
         <table id="ticketsTable" style="width:100%">
-          <thead><tr><th>ID</th><th>User</th><th>Issue</th><th>Priority</th><th>Status</th><th>Response</th><th>Action</th></tr></thead>
+          <thead><tr><th>ID</th><th>User</th><th>Issue</th><th>Priority</th><th>Status</th><th>Notes</th><th>Action</th></tr></thead>
           <tbody id="ticketsAdminBody"></tbody>
         </table>
       </div>
@@ -276,7 +276,7 @@
   <div id="tab-logs" class="tab-panel">
     <div class="card">
       <div class="card-title"><i class="fas fa-list-check"></i> Activity Log (Admin & User Actions)</div>
-      <button id="clearLogsBtn" class="btn-secondary" style="margin-bottom: 12px;"><i class="fas fa-trash-alt"></i> Clear All Logs (Admin Only)</button>
+      <button id="clearLogsBtn" class="btn-secondary" style="margin-bottom: 12px;"><i class="fas fa-trash-alt"></i> Clear All Logs</button>
       <div id="logEntriesContainer" style="max-height: 500px; overflow-y: auto;"></div>
     </div>
   </div>
@@ -442,15 +442,15 @@
           <td>
             <div style="font-size:0.7rem;color:#9B59B6;font-weight:600;margin-bottom:3px">${escHtml(t.issueTypeLabel || t.issueType || 'General')}</div>
             <div style="font-size:0.85rem;color:#1A2C3E;line-height:1.4">${escHtml((t.message || '(no description)').substring(0, 120))}${(t.message||'').length > 120 ? '…' : ''}</div>
-            ${t.adminResponse ? `<div style="font-size:0.72rem;color:#2C8A5E;margin-top:4px;background:#e0f2e9;padding:4px 8px;border-radius:8px">✅ Admin: ${escHtml(t.adminResponse)}</div>` : ''}
+            ${t.adminResponse ? `<div style="font-size:0.72rem;color:#2C8A5E;margin-top:4px;background:#e0f2e9;padding:4px 8px;border-radius:8px">Admin: ${escHtml(t.adminResponse)}</div>` : ''}
           </td>
           <td><span class="badge" style="background:${priorityColor}">${escHtml(t.priority || 'normal')}</span></td>
           <td><span class="badge ${isOpen ? 'badge-banned' : 'badge-active'}">${isOpen ? 'Open' : 'Resolved'}</span><br><span style="font-size:0.65rem;color:#7E8C9E">${created}</span></td>
-          <td><textarea id="resp-${t.id}" rows="2" placeholder="Write reply…" style="width:160px;font-size:0.8rem" ${!isOpen ? 'disabled' : ''}>${isOpen ? '' : escHtml(t.adminResponse || '')}</textarea></td>
+          <td><textarea id="resp-${t.id}" rows="2" placeholder="Write notes…" style="width:160px;font-size:0.8rem" ${!isOpen ? 'disabled' : ''}>${isOpen ? '' : escHtml(t.adminResponse || '')}</textarea></td>
           <td>
             ${isOpen
-              ? `<button class="btn-primary respondBtn" data-id="${t.id}" style="padding:6px 12px;font-size:0.8rem">Reply & Close</button>`
-              : `<span style="font-size:0.7rem;color:#2C8A5E">✅ Done</span>`}
+              ? `<button class="btn-primary respondBtn" data-id="${t.id}" style="padding:6px 12px;font-size:0.8rem">Mark as resolved</button>`
+              : `<span style="font-size:0.7rem;color:#2C8A5E">Done</span>`}
           </td>
         </tr>`;
       }).join('');
