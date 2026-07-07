@@ -192,7 +192,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { getFirestore, collection, getDocs, doc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyC0BnVATHYNbRSUKorbfGN6-6-h6fNv2gY",
@@ -238,8 +238,32 @@
   }
 
   // ========== HELPERS ==========
+// ========== EXCHANGE RATES ==========
+  async function getExchangeRates() {
+    const cached  = localStorage.getItem('spendwise_rates');
+    const cacheTs = localStorage.getItem('spendwise_rates_ts');
+    if (cached && cacheTs && (Date.now() - parseInt(cacheTs)) < 6*60*60*1000) {
+      return JSON.parse(cached);
+    }
+    try {
+      const resp = await fetch('https://open.er-api.com/v6/latest/USD');
+      const data = await resp.json();
+      if (data.result === 'success') {
+        localStorage.setItem('spendwise_rates', JSON.stringify(data.rates));
+        localStorage.setItem('spendwise_rates_ts', Date.now().toString());
+        return data.rates;
+      }
+    } catch(e) { console.warn('Rate fetch failed:', e); }
+    return cached ? JSON.parse(cached) : null;
+  }
+
+  function convertAmt(amount, from, to, rates) {
+    if (!rates || from === to) return amount;
+    return amount * ((rates[to] || 1) / (rates[from] || 1));
+  }
+
 // ========== RENDER ==========
-  function renderDashboard(transactions) {
+  function renderDashboard(transactions, rates, userBaseCurrency) {
     const symbol = getCurrencySymbol();
     const container = document.getElementById('dashboardContent');
 
@@ -257,11 +281,13 @@
       return;
     }
 
-    // Calculate totals
+    // Calculate totals — convert from baseCurrency to display currency
+    const displayCurr = localStorage.getItem('spendwise_currency') || userBaseCurrency || 'USD';
     let totalIncome = 0, totalExpense = 0;
     transactions.forEach(t => {
-      if (t.type === 'income') totalIncome += t.amount;
-      else totalExpense += t.amount;
+      const amt = convertAmt(t.amount, userBaseCurrency || 'USD', displayCurr, rates);
+      if (t.type === 'income') totalIncome += amt;
+      else totalExpense += amt;
     });
     const balance = totalIncome - totalExpense;
 
@@ -272,7 +298,8 @@
 
     transactions.filter(t => t.type === 'expense').forEach(t => {
       const cat = t.category || 'Other';
-      expenseByCat[cat] = (expenseByCat[cat] || 0) + t.amount;
+      const amt = convertAmt(t.amount, userBaseCurrency || 'USD', displayCurr, rates);
+      expenseByCat[cat] = (expenseByCat[cat] || 0) + amt;
     });
 
     const activeCats = categories.filter(c => expenseByCat[c] > 0);
@@ -295,8 +322,9 @@
       const monthDiff = (now.getFullYear() - date.getFullYear()) * 12 + (now.getMonth() - date.getMonth());
       if (monthDiff >= 0 && monthDiff < 6) {
         const idx = 5 - monthDiff;
-        if (t.type === 'income') monthlyIncome[idx] += t.amount;
-        else monthlyExpense[idx] += t.amount;
+        const amt = convertAmt(t.amount, userBaseCurrency || 'USD', displayCurr, rates);
+        if (t.type === 'income') monthlyIncome[idx] += amt;
+        else monthlyExpense[idx] += amt;
       }
     });
 
@@ -358,8 +386,19 @@
       window.location.href = 'login.html';
     } else {
       currentUser = user;
+
+      // Load user's baseCurrency
+      let userBaseCurrency = 'USD';
+      try {
+        const userSnap = await getDoc(doc(db, 'users', user.uid));
+        if (userSnap.exists() && userSnap.data().baseCurrency) {
+          userBaseCurrency = userSnap.data().baseCurrency;
+        }
+      } catch(e) { console.warn('Could not load baseCurrency:', e); }
+
+      const rates = await getExchangeRates();
       currentTransactions = await loadTransactions(user.uid);
-      renderDashboard(currentTransactions);
+      renderDashboard(currentTransactions, rates, userBaseCurrency);
     }
   });
 

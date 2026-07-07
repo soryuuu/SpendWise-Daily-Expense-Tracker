@@ -262,6 +262,7 @@
   import { 
     getFirestore, 
     doc, 
+    getDoc,
     setDoc, 
     serverTimestamp 
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -307,12 +308,30 @@
     loadingSpinner.style.display = show ? 'block' : 'none';
   }
   
-  // THIS IS THE WORKING FUNCTION - SAVES TO FIRESTORE
+  // SAVES USER TO FIRESTORE — also sets baseCurrency from admin default for new accounts
   async function saveUserToFirestore(user, provider, name = null) {
     try {
       const userRef = doc(db, 'users', user.uid);
       const userName = name || user.displayName || user.email.split('@')[0];
-      
+
+      // Check if this user already exists (returning user vs new signup)
+      const existingSnap = await getDoc(userRef);
+      const isNewUser = !existingSnap.exists();
+
+      let baseCurrency = 'USD'; // fallback default
+      if (isNewUser) {
+        // New account — inherit the admin's default currency from systemSettings
+        try {
+          const settingsSnap = await getDoc(doc(db, 'systemSettings', 'config'));
+          if (settingsSnap.exists() && settingsSnap.data().defaultCurrency) {
+            baseCurrency = settingsSnap.data().defaultCurrency;
+          }
+        } catch(e) { console.warn('Could not read admin default currency:', e); }
+      } else {
+        // Returning user — keep their existing baseCurrency if set
+        baseCurrency = existingSnap.data().baseCurrency || 'USD';
+      }
+
       await setDoc(userRef, {
         uid: user.uid,
         email: user.email,
@@ -320,10 +339,16 @@
         provider: provider,
         lastLoginAt: serverTimestamp(),
         createdAt: serverTimestamp(),
-        status: 'active'
+        status: 'active',
+        ...(isNewUser ? { baseCurrency } : {}) // only set baseCurrency on new accounts
       }, { merge: true });
-      
-      console.log("✅ USER SAVED TO FIRESTORE:", user.email);
+
+      // Set localStorage currency to match the user's base currency
+      if (isNewUser) {
+        localStorage.setItem('spendwise_currency', baseCurrency);
+      }
+
+      console.log("✅ USER SAVED TO FIRESTORE:", user.email, isNewUser ? `(new, baseCurrency: ${baseCurrency})` : '(returning)');
       return true;
     } catch (error) {
       console.error("❌ Firestore error:", error);

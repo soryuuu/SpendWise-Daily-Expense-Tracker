@@ -608,6 +608,22 @@
         loginTime: new Date().toISOString()
       }));
 
+      // Load user's baseCurrency from Firestore doc
+      try {
+        const userSnap = await getDoc(doc(db, 'users', currentUID));
+        if (userSnap.exists() && userSnap.data().baseCurrency) {
+          baseCurrency = userSnap.data().baseCurrency;
+        }
+        // Sync display currency to base if not already explicitly set by user
+        if (!localStorage.getItem('spendwise_currency')) {
+          currentCurrency = baseCurrency;
+          localStorage.setItem('spendwise_currency', baseCurrency);
+        }
+      } catch(e) { console.warn('Could not load baseCurrency:', e); }
+
+      // Fetch live exchange rates (cached — non-blocking)
+      exchangeRates = await getExchangeRates();
+
       // Load THIS user's transactions from Firestore, then render
       await loadData();
       updateSummary();
@@ -659,6 +675,37 @@
   let transactions = [];
   let currentFilter = "all";
   let currentCurrency = localStorage.getItem('spendwise_currency') || 'USD';
+  let baseCurrency = 'USD';      // currency amounts are stored in — loaded from user's Firestore doc
+  let exchangeRates = null;      // live rates relative to USD, cached in localStorage
+
+  // ── Fetch live exchange rates (cached 6 hours) ──
+  async function getExchangeRates() {
+    const cached  = localStorage.getItem('spendwise_rates');
+    const cacheTs = localStorage.getItem('spendwise_rates_ts');
+    const SIX_HOURS = 6 * 60 * 60 * 1000;
+    if (cached && cacheTs && (Date.now() - parseInt(cacheTs)) < SIX_HOURS) {
+      return JSON.parse(cached);
+    }
+    try {
+      const resp = await fetch('https://open.er-api.com/v6/latest/USD');
+      const data = await resp.json();
+      if (data.result === 'success') {
+        localStorage.setItem('spendwise_rates', JSON.stringify(data.rates));
+        localStorage.setItem('spendwise_rates_ts', Date.now().toString());
+        return data.rates;
+      }
+    } catch(e) { console.warn('Exchange rate fetch failed, using cache or 1:1:', e); }
+    return cached ? JSON.parse(cached) : null;
+  }
+
+  // ── Convert an amount from one currency to another ──
+  // If rates unavailable, return amount unchanged (graceful fallback)
+  function convertAmount(amount, from, to) {
+    if (!exchangeRates || from === to) return amount;
+    const fromRate = exchangeRates[from] || 1;
+    const toRate   = exchangeRates[to]   || 1;
+    return amount * (toRate / fromRate);
+  }
 
   function getCurrencySymbol(code) {
     const currency = currencies.find(c => c.code === code);
@@ -733,8 +780,10 @@
   function updateSummary() {
     let totalIncome = 0, totalExpense = 0;
     transactions.forEach(t => {
-      if (t.type === "income") totalIncome += t.amount;
-      else totalExpense += t.amount;
+      // Convert each amount from baseCurrency → display currency before summing
+      const converted = convertAmount(t.amount, baseCurrency, currentCurrency);
+      if (t.type === "income") totalIncome += converted;
+      else totalExpense += converted;
     });
     const balance = totalIncome - totalExpense;
     const symbol = getCurrencySymbol(currentCurrency);
@@ -775,7 +824,8 @@
     filtered.forEach(transaction => {
       const amountClass = transaction.type === "income" ? "income-amount" : "expense-amount";
       const sign = transaction.type === "income" ? "+" : "-";
-      const formattedAmount = `${sign}${symbol}${Math.abs(transaction.amount).toFixed(2)}`;
+      const displayAmt = convertAmount(transaction.amount, baseCurrency, currentCurrency);
+      const formattedAmount = `${sign}${symbol}${Math.abs(displayAmt).toFixed(2)}`;
       const transDiv = document.createElement("div");
       transDiv.className = "transaction-item";
       const categoryDisplay = transaction.type === "income" ? "Income" : (transaction.category || "Other");
@@ -1033,12 +1083,16 @@
       btn.className = 'currency-btn';
       if (curr.code === currentCurrency) btn.classList.add('active');
       btn.innerHTML = `${curr.flag} ${curr.code} (${curr.symbol})`;
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         if (confirm(`Are you sure you want to change currency to ${curr.flag} ${curr.code} (${curr.symbol})?`)) {
           currentCurrency = curr.code;
           localStorage.setItem('spendwise_currency', currentCurrency);
           document.querySelectorAll('.currency-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
+          // Refresh exchange rates in case they're stale, then re-render
+          // baseCurrency is NOT changed — it always reflects what currency amounts are stored in.
+          // Only the display currency changes here.
+          exchangeRates = await getExchangeRates();
           updateSummary();
           renderTransactions();
           document.getElementById('currencyModal').style.display = 'none';
