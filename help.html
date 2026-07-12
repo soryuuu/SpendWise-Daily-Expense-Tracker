@@ -175,7 +175,7 @@
 <body>
 
 <div class="container">
-  <!-- Navigation (same as main app theme) -->
+  <!-- Navigation -->
   <nav class="navbar">
     <div class="logo">
       <i class="fas fa-coins"></i>
@@ -229,17 +229,12 @@
           <label><i class="fas fa-comments"></i> Describe your problem</label>
           <textarea rows="4" id="message" placeholder="Please provide as many details as possible..."></textarea>
         </div>
-        <div class="form-group">
-          <label><i class="fas fa-file-image"></i> Attach screenshot (optional)</label>
-          <input type="file" id="screenshot" accept="image/*" style="padding: 8px;">
-          <div class="priority-badge"><i class="fas fa-info-circle"></i> You can put screenshots to help us understand the issue better</div>
-        </div>
         <button type="submit" class="btn-solid" style="width:100%; justify-content:center;"><i class="fas fa-paper-plane"></i> Submit Ticket</button>
       </form>
       <p class="priority-badge" style="margin-top: 12px; text-align:center;"><i class="fas fa-clock"></i> Average response time: under 12 hours</p>
     </div>
 
-    <!-- FAQ Preview sidebar (consistent with help center style) -->
+    <!-- FAQ sidebar -->
     <div class="faq-preview">
       <div class="section-title" style="font-size:1.3rem; margin-bottom: 0.2rem;">
         <i class="fas fa-circle-info"></i> Quick answers
@@ -280,7 +275,7 @@
   </footer>
 </div>
 
-<!-- Success Toast Notification -->
+<!-- Success Ticket Submission Notification -->
 <div id="successToast" class="success-toast">
   <i class="fas fa-check-circle"></i> <span id="toastMessage">Ticket submitted!</span>
 </div>
@@ -305,8 +300,6 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // currentUser is OPTIONAL — anyone can submit a ticket whether logged in or not.
-  // If they happen to be logged in, we just pre-fill name/email and attach their uid for reference.
   let currentUser = null;
 
   function escapeHtml(str) {
@@ -314,7 +307,6 @@
     return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   }
 
-  // ── Toast helper ──
   function showToast(msg) {
     const toast = document.getElementById('successToast');
     document.getElementById('toastMessage').textContent = msg;
@@ -322,12 +314,12 @@
     setTimeout(() => toast.classList.remove('show'), 4000);
   }
 
-  // ── Basic email format check ──
+  //email format check
   function isValidEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
 
-  // ── Submit ticket form — no login required ──
+  //ticket submission
   const form = document.getElementById('supportTicketForm');
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -338,8 +330,7 @@
     const priority   = form.querySelector('#priority')?.value || 'medium';
     const message    = form.querySelector('#message')?.value?.trim() || '';
 
-    // Basic client-side validation — these fields are marked required in HTML too,
-    // but double-check here since some browsers allow bypassing required on submit() calls.
+    //verif
     if (!fullName) { showToast('Please enter your full name.'); return; }
     if (!email || !isValidEmail(email)) { showToast('Please enter a valid email address.'); return; }
     if (!message) { showToast('Please describe your problem.'); return; }
@@ -355,7 +346,7 @@
 
     try {
       const ticketData = {
-        uid: currentUser?.uid || null,        // null if not logged in — that's fine
+        uid: currentUser?.uid || null,
         userName: fullName,
         email: email,
         issueType,
@@ -380,8 +371,6 @@
     }
   });
 
-  // ── Optional: if user happens to be logged in, pre-fill name/email for convenience ──
-  // This does NOT gate ticket submission — submission works with or without this firing.
   onAuthStateChanged(auth, (user) => {
     if (user) {
       currentUser = user;
@@ -392,7 +381,6 @@
     }
   });
 
-  // ── FAQ accordion ──
   document.querySelectorAll('.faq-question').forEach(btn => {
     btn.addEventListener('click', () => {
       const item = btn.parentElement;

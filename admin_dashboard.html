@@ -259,7 +259,7 @@
     </div>
   </div>
 
-  <!-- TAB 3: Support Tickets (View & Respond) -->
+  <!-- TAB 3: Support Tickets -->
   <div id="tab-tickets" class="tab-panel">
     <div class="card">
       <div class="card-title"><i class="fas fa-ticket-alt"></i> User Support Tickets</div>
@@ -272,7 +272,7 @@
     </div>
   </div>
 
-  <!-- TAB 4: Administration Log (both user & admin actions) -->
+  <!-- TAB 4: Administration Log -->
   <div id="tab-logs" class="tab-panel">
     <div class="card">
       <div class="card-title"><i class="fas fa-list-check"></i> Activity Log (Admin & User Actions)</div>
@@ -306,7 +306,7 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // ── helpers ──
+  // helpers
   function escHtml(s) {
     if (!s) return '';
     return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -316,7 +316,7 @@
     return new Date(iso).toLocaleString('en-MY', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
   }
 
-  // ── Write an admin log to Firestore ──
+  // write admin logs to firestore
   async function writeLog(actionType, details, entityId = null) {
     try {
       await addDoc(collection(db, 'adminLogs'), {
@@ -329,9 +329,7 @@
     } catch(e) { console.error('Log write failed:', e); }
   }
 
-  // ════════════════════════════════════════
   //  TAB 1 — USERS
-  // ════════════════════════════════════════
   async function loadUsers() {
     const tbody = document.getElementById('usersTableBody');
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
@@ -342,7 +340,6 @@
 
       document.getElementById('totalUsers').textContent = users.length;
 
-      // Hide already-deleted users from the list
       const visibleUsers = users.filter(u => u.status !== 'deleted');
 
       if (!visibleUsers.length) {
@@ -368,7 +365,7 @@
         </tr>`;
       }).join('');
 
-      // Delete (hard delete — permanently removes the user doc + their transactions from Firestore)
+      // Delete user (literally deletes all their data)
       document.querySelectorAll('.deleteUserBtn').forEach(btn => {
         btn.addEventListener('click', async () => {
           const uid = btn.dataset.id;
@@ -377,16 +374,12 @@
           btn.disabled = true;
           btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
           try {
-            // Delete all of the user's transactions first
             const txSnap = await getDocs(collection(db, 'users', uid, 'transactions'));
             await Promise.all(txSnap.docs.map(txDoc => deleteDoc(txDoc.ref)));
-            // Delete the user's profile document
             await deleteDoc(doc(db, 'users', uid));
             await writeLog('ADMIN_DELETE_USER', `Permanently deleted user ${email} and ${txSnap.size} transaction(s)`, uid);
-            // Remove the row immediately from the DOM
             const row = btn.closest('tr');
             if (row) row.remove();
-            // Update total count
             const totalEl = document.getElementById('totalUsers');
             if (totalEl) totalEl.textContent = Math.max(0, parseInt(totalEl.textContent) - 1);
           } catch(e) {
@@ -404,14 +397,11 @@
     }
   }
 
-  // ════════════════════════════════════════
   //  TAB 3 — TICKETS
-  // ════════════════════════════════════════
   async function loadTickets() {
     const tbody = document.getElementById('ticketsAdminBody');
     tbody.innerHTML = '<tr><td colspan="7" style="text-align:center"><i class="fas fa-spinner fa-spin"></i> Loading tickets...</td></tr>';
     try {
-      // Sort client-side to avoid needing Firestore composite index
       const snap = await getDocs(collection(db, 'tickets'));
       const tickets = [];
       snap.forEach(d => tickets.push({ id: d.id, ...d.data() }));
@@ -477,9 +467,7 @@
     }
   }
 
-  // ════════════════════════════════════════
   //  TAB 4 — ADMIN LOGS
-  // ════════════════════════════════════════
   async function loadLogs() {
     const container = document.getElementById('logEntriesContainer');
     container.innerHTML = '<div class="log-entry">Loading logs…</div>';
@@ -503,9 +491,7 @@
     }
   }
 
-  // ════════════════════════════════════════
-  //  SYSTEM SETTINGS (maintenance, announcement)
-  // ════════════════════════════════════════
+  //  SYSTEM SETTINGS
   const SETTINGS_DOC = doc(db, 'systemSettings', 'config');
 
   async function loadSettings() {
@@ -516,7 +502,6 @@
       const announce = data.announcement || 'No active announcement.';
 
       document.getElementById('activeAnnouncementText').textContent = announce;
-      // Don't refill the textbox — admin should type a fresh message each time
       document.getElementById('globalCurrencySelect').value = data.defaultCurrency || 'USD';
 
       const badge = document.getElementById('liveStatusBadge');
@@ -574,15 +559,14 @@
     alert(`Default currency set to ${curr}`);
   });
 
-  // Track any pending scheduled maintenance timer so we can cancel it if cleared
   let scheduledMaintenanceTimer = null;
 
+  // Schedule maintenance timer
   function startMaintenanceCountdown(scheduledTime) {
     if (scheduledMaintenanceTimer) clearTimeout(scheduledMaintenanceTimer);
     const delay = scheduledTime - Date.now();
-    if (delay <= 0) return; // already passed
+    if (delay <= 0) return;
     scheduledMaintenanceTimer = setTimeout(async () => {
-      // Time reached — enable maintenance in Firestore and refresh the UI
       await setDoc(SETTINGS_DOC, {
         maintenanceMode: true,
         scheduledMaintenanceEnabled: false,
@@ -590,7 +574,7 @@
         updatedAt: serverTimestamp()
       }, { merge: true });
       await writeLog('ADMIN_AUTO_MAINTENANCE', 'Maintenance mode auto-enabled by schedule');
-      await loadSettings(); // refresh badge + button UI immediately
+      await loadSettings();
     }, delay);
   }
 
@@ -613,7 +597,6 @@
     }, { merge: true });
     await writeLog('ADMIN_SCHEDULE_MAINTENANCE', `Maintenance scheduled for ${val}`);
 
-    // Start the client-side timer so this tab's UI updates when time arrives
     startMaintenanceCountdown(scheduledTime);
 
     const formatted = scheduledTime.toLocaleString('en-MY', {
@@ -625,7 +608,6 @@
 
   // Clear scheduled maintenance
   document.getElementById('clearScheduleBtn')?.addEventListener('click', async () => {
-    // Cancel client-side timer if running
     if (scheduledMaintenanceTimer) {
       clearTimeout(scheduledMaintenanceTimer);
       scheduledMaintenanceTimer = null;
@@ -658,7 +640,6 @@
     });
   });
 
-  // Init
   async function init() {
     await Promise.all([loadUsers(), loadTickets(), loadLogs(), loadSettings()]);
     await writeLog('ADMIN_LOGIN', 'Admin accessed dashboard');

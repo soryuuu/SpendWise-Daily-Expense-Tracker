@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-  <!-- Test: Vercel preview for update-v1.1 -->
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
@@ -233,7 +233,7 @@
 
 
 <div class="container">
-  <!-- Navigation matching SpendWise theme -->
+  <!-- Navigation -->
   <nav class="navbar">
     <div class="logo">
       <i class="fas fa-coins"></i>
@@ -248,7 +248,6 @@
     </div>
   </nav>
 
-  <!-- Hero Section (inspired by realbyteapps) -->
   <div id="home"class="hero">
     <div class="hero-content">
       <div class="hero-badge">
@@ -289,7 +288,7 @@
     </div>
   </div>
 
-  <!-- Screenshots / Preview area (realbyteapps style) -->
+  <!-- showcase -->
   <div class="showcase">
     <div class="container">
       <h2 id="preview" class="section-title" style="text-align: center;">Sneak peek at SpendWise</h2>
@@ -328,7 +327,7 @@
     </div>
   </div>
 
-  <!-- Help Center section inspired by realbyteapps -->
+  <!-- customer support -->
   <div class="help-center">
     <i class="fas fa-circle-info" style="font-size: 2.5rem; color:#2A7F6E; margin-bottom: 0.5rem; display: inline-block;"></i>
     <h2 id="help">Help Center & Support</h2>
@@ -340,15 +339,13 @@
     </div>
   </div>
 
-  <!-- Footer with cookie / simple links similar to realbyteapps vibe -->
   <footer class="footer">
     <div>© 2026 SpendWise: Daily Expense Tracker</div>
     </div>
   </footer>
 </div>
 
-<!-- Simple Cookie Consent Mock (just for demonstration) 
-     no actual storage, but styling replicates the mention from realbyteapps -->
+<!-- cookie notice -->
 <div style="position: fixed; bottom: 20px; left: 20px; right: 20px; background: white; max-width: 450px; margin: 0 auto; border-radius: 60px; padding: 12px 20px; box-shadow: 0 12px 28px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; z-index: 1000; font-size: 0.8rem; border: 1px solid #e2e8f0;" id="cookieNotice">
   <span><i class="fas fa-cookie-bite"></i> We use cookies to improve experience.</span>
   <div>
@@ -357,7 +354,6 @@
   </div>
 </div>
 <script>
-  // Minor cookie banner simulation (Just to match the realbyteapps style but non-intrusive)
   const cookieNotice = document.getElementById('cookieNotice');
   if (localStorage.getItem('cookie_preference')) {
     if (cookieNotice) cookieNotice.style.display = 'none';
