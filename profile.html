@@ -215,14 +215,14 @@
 
     <div class="divider"></div>
 
-    <!-- Email Info (read-only) -->
+    <!-- Email Info (read only) -->
     <div class="form-group">
       <label><i class="fas fa-envelope"></i> Email Address</label>
       <input type="email" id="emailDisplay" disabled>
       <div class="input-hint">Your email is managed by your authentication provider.</div>
     </div>
 
-    <!-- Provider info filled dynamically -->
+    <!-- Account info filled automatically -->
     <div class="info-text" id="providerInfo">
       <i class="fas fa-info-circle"></i> Loading account info...
     </div>
@@ -259,7 +259,6 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // DOM Elements
   const successDiv      = document.getElementById('successMsg');
   const errorDiv        = document.getElementById('errorMsg');
   const displayNameInput = document.getElementById('displayNameInput');
@@ -273,7 +272,7 @@
 
   let currentUser = null;
 
-  // ========== MESSAGES ==========
+  // MESSAGES
   function showMessage(message, isSuccess = true) {
     if (isSuccess) {
       successDiv.textContent = message;
@@ -290,8 +289,7 @@
     }, 3000);
   }
 
-  // ========== LOAD PROFILE ==========
-  // Pulls both Firebase Auth fields AND extra fields from Firestore users/{uid}
+  // LOAD PROFILE
   async function loadUserData(user) {
     currentUser = user;
 
@@ -313,7 +311,6 @@
       ? '<i class="fas fa-info-circle"></i> Signed in with <strong>Google</strong>. Your account is securely managed by Google Authentication.'
       : '<i class="fas fa-info-circle"></i> Signed in with <strong>Email & Password</strong>.';
 
-    // (extra profile fields like phone were removed — extend here if needed)
 
     // Sync localStorage for other pages
     localStorage.setItem('spendwise_user', JSON.stringify({
@@ -326,8 +323,8 @@
     }));
   }
 
-  // ========== SAVE PROFILE ==========
-  // Updates Firebase Auth displayName + Firestore users/{uid} with all profile fields
+  // SAVE PROFILE
+  // Updates Firebase Auth displayName + Firestore users/uid with all profile fields
   async function saveProfile() {
     const newDisplayName = displayNameInput.value.trim();
 
@@ -338,10 +335,8 @@
     saveProfileBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
     try {
-      // 1. Update Firebase Auth display name
       await updateProfile(auth.currentUser, { displayName: newDisplayName });
 
-      // 2. Update Firestore users/{uid}
       const userRef = doc(db, 'users', currentUser.uid);
       await setDoc(userRef, {
         name: newDisplayName,
@@ -350,17 +345,14 @@
         updatedAt: serverTimestamp()
       }, { merge: true });
 
-      // 3. Update localStorage so other pages reflect the new name
       const storedUser = JSON.parse(localStorage.getItem('spendwise_user') || '{}');
       storedUser.name = newDisplayName;
       localStorage.setItem('spendwise_user', JSON.stringify(storedUser));
 
-      // 4. Refresh avatar if no custom photo set
       if (!currentUser.photoURL && !localStorage.getItem(`profile_img_${currentUser.uid}`)) {
         profileImage.src = `https://ui-avatars.com/api/?background=2A7F6E&color=fff&size=120&bold=true&name=${encodeURIComponent(newDisplayName)}`;
       }
 
-      // 4b. If user belongs to a household, sync their updated name there too
       const userSnapForHousehold = await getDoc(doc(db, 'users', currentUser.uid));
       const householdId = userSnapForHousehold.data()?.householdId;
       if (householdId) {
@@ -386,7 +378,7 @@
     }
   }
 
-  // ========== PROFILE PICTURE ==========
+  // PROFILE PICTURE
   function setupProfilePicture() {
     changePhotoBtn.addEventListener('click', () => photoUpload.click());
 
@@ -409,7 +401,7 @@
     });
   }
 
-  // ========== LOGOUT ==========
+  // LOGOUT
   async function logout() {
     if (confirm('Are you sure you want to logout?')) {
       try {
@@ -423,7 +415,7 @@
     }
   }
 
-  // ========== AUTH GATE ==========
+  // AUTH
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
       window.location.href = 'index.html';
@@ -433,7 +425,7 @@
     }
   });
 
-  // ========== EVENT LISTENERS ==========
+  // EVENT LISTENERS
   saveProfileBtn.addEventListener('click', saveProfile);
   logoutBtn.addEventListener('click', logout);
   displayNameInput.addEventListener('keypress', (e) => {

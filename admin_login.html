@@ -101,7 +101,7 @@
 </head>
 <body>
     <script>
-  // Reset admin session when on main page
+  // Reset admin session when on main page/relogin
   sessionStorage.removeItem('admin_authenticated');
   sessionStorage.removeItem('admin_login_time');
 </script>
@@ -134,7 +134,7 @@
 </div>
 
 <script>
-  // PASSCODE
+  // PASSCODE (hardcoded, will change to a secure one in future)
   const ADMIN_PASSCODE = "811649";
 
   // Check if already logged in (session storage)
@@ -155,7 +155,7 @@
       sessionStorage.setItem('admin_authenticated', 'true');
       sessionStorage.setItem('admin_login_time', new Date().toISOString());
       
-      // Redirect to admin dashboard page (admin.html)
+      // Redirect to admin dashboard page
       window.location.href = "admin_dashboard.html";
     } else {
       errorDiv.style.display = 'flex';

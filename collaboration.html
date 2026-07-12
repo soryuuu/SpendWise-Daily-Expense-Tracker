@@ -240,7 +240,7 @@
     </div>
   </div>
 
-  <!-- Stats Row -->
+  <!-- Stats -->
   <div class="stats-row" id="statsRow">
     <div class="stat-card">
       <div class="stat-icon purple"><i class="fas fa-users"></i></div>
@@ -272,15 +272,13 @@
     </div>
   </div>
 
-  <!-- Main Grid -->
   <div class="main-grid">
 
-    <!-- LEFT: Transaction History -->
+    <!-- LEFT(the main one): Transaction History -->
     <div>
       <div class="section-card">
         <div class="section-title"><i class="fas fa-history"></i> Transaction History</div>
 
-        <!-- Filter bar -->
         <div class="filter-bar">
           <button class="filter-btn active" data-filter="today">Today</button>
           <button class="filter-btn" data-filter="yesterday">Yesterday</button>
@@ -299,7 +297,7 @@
       </div>
     </div>
 
-    <!-- RIGHT: Members only -->
+    <!-- RIGHT: Members -->
     <div class="right-col">
 
       <!-- Manage Members -->
@@ -357,14 +355,14 @@
   let allTransactions = [];
   let currentFilter = 'today';
 
-  // ── Currency ──
+  // Currency
   function getSymbol() {
     const saved = localStorage.getItem('spendwise_currency');
     const map = { USD:'$', EUR:'€', GBP:'£', MYR:'RM', INR:'₹', CAD:'C$', AUD:'A$', SGD:'S$', JPY:'¥', KRW:'₩', THB:'฿', IDR:'Rp' };
     return map[saved] || '$';
   }
 
-  // ── Date helpers ──
+  // Date helpers
   function toDateStr(iso) { return iso ? iso.substring(0,10) : ''; }
   function todayStr() { return new Date().toISOString().substring(0,10); }
   function yesterdayStr() { const d = new Date(); d.setDate(d.getDate()-1); return d.toISOString().substring(0,10); }
@@ -412,9 +410,7 @@
     'Bills & Utilities':'💡','Income':'💼','Other':'📌'
   };
 
-  // ─────────────────────────────────────────
-  // FIRESTORE: Create a new household
-  // ─────────────────────────────────────────
+  // new household
   async function createHousehold(user) {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     const code = Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
@@ -439,16 +435,13 @@
       members: [memberData]
     });
 
-    // Tag this user as belonging to this household
     await setDoc(doc(db, 'users', user.uid), { householdId }, { merge: true });
 
     console.log('✅ Household created:', householdId, '| Code:', code);
     return householdId;
   }
 
-  // ─────────────────────────────────────────
-  // FIRESTORE: Join an existing household by code
-  // ─────────────────────────────────────────
+  // existing household
   async function joinHousehold(user, code) {
     const cleanCode = code.toUpperCase().replace(/\s/g, '');
     try {
@@ -465,7 +458,7 @@
       const householdId = householdDoc.id;
       const data = householdDoc.data();
 
-      // Already a member — just link their user doc and continue
+      // Already a member, link user doc
       if (data.memberUids && data.memberUids.includes(user.uid)) {
         await setDoc(doc(db, 'users', user.uid), { householdId }, { merge: true });
         return householdId;
@@ -479,16 +472,13 @@
         role: 'member'
       };
 
-      // arrayUnion works for primitive strings (memberUids)
-      // For objects (members array), manually push to avoid arrayUnion deep-equality issues
       const updatedMembers = [...(data.members || []), memberData];
 
       await updateDoc(householdDoc.ref, {
-        memberUids: arrayUnion(user.uid),   // safe — strings only
-        members: updatedMembers             // replace full array with new member added
+        memberUids: arrayUnion(user.uid),
+        members: updatedMembers
       });
 
-      // Tag this user as belonging to this household
       await setDoc(doc(db, 'users', user.uid), { householdId }, { merge: true });
 
       console.log('✅ Joined household:', householdId);
@@ -505,13 +495,11 @@
     }
   }
 
-  // ─────────────────────────────────────────
-  // FIRESTORE: Load household document
-  // ─────────────────────────────────────────
+  // Load household doc
   async function loadHousehold() {
     const snap = await getDoc(doc(db, 'households', currentHouseholdId));
 
-    // Household doc doesn't exist at all
+    // Household doc doesnt exist/got deleted
     if (!snap.exists()) {
       await setDoc(doc(db, 'users', currentUser.uid), { householdId: null }, { merge: true });
       alert('This household has been dissolved by the owner.');
@@ -521,7 +509,7 @@
 
     householdData = snap.data();
 
-    // Household marked as dissolved (creator used updateDoc instead of deleteDoc)
+    // Household marked as dissolved
     if (householdData.dissolved) {
       await setDoc(doc(db, 'users', currentUser.uid), { householdId: null }, { merge: true });
       alert('This household has been dissolved by the owner.');
@@ -529,7 +517,7 @@
       return;
     }
 
-    // Current user is no longer in memberUids — they were kicked
+    // Current user is no longer in memberUids (kicked)
     if (!householdData.memberUids || !householdData.memberUids.includes(currentUser.uid)) {
       await setDoc(doc(db, 'users', currentUser.uid), { householdId: null }, { merge: true });
       alert('You have been removed from this household.');
@@ -538,9 +526,7 @@
     }
   }
 
-  // ─────────────────────────────────────────
-  // FIRESTORE: Load all household transactions
-  // ─────────────────────────────────────────
+  // Load all household transactions
   async function loadHouseholdTransactions() {
     allTransactions = [];
     try {
@@ -556,9 +542,7 @@
     }
   }
 
-  // ─────────────────────────────────────────
-  // FIRESTORE: Remove a member (creator only)
-  // ─────────────────────────────────────────
+  // Remove member (creator only)
   async function removeMember(uid) {
     if (householdData.createdBy !== currentUser.uid) return;
     if (uid === currentUser.uid) return;
@@ -567,16 +551,11 @@
     if (!member || !confirm(`Remove "${member.name}" from the household?`)) return;
 
     try {
-      // Remove from household doc — strings use arrayRemove, objects use manual filter
       const updatedMembers = householdData.members.filter(m => m.uid !== uid);
       await updateDoc(doc(db, 'households', currentHouseholdId), {
         memberUids: arrayRemove(uid),
         members: updatedMembers
       });
-
-      // NOTE: We cannot write to another user's Firestore document (rules block it).
-      // The removed user will self-clean their householdId the next time they
-      // visit collaboration.html and loadHousehold() detects they're not in memberUids.
 
       await loadHousehold();
       renderAll();
@@ -587,9 +566,7 @@
   }
   window.removeMember = removeMember;
 
-  // ─────────────────────────────────────────
-  // FIRESTORE: Leave household
-  // ─────────────────────────────────────────
+  // Leave household
   async function leaveHousehold() {
     if (!confirm('Are you sure you want to leave this household?')) return;
 
@@ -598,17 +575,13 @@
     try {
       if (isCreator) {
         if (!confirm('As the owner, leaving will dissolve the household for ALL members. Continue?')) return;
-        // Mark household as dissolved via updateDoc (avoids needing delete permission in Firestore rules).
-        // Other members will detect dissolved:true on their next visit and self-clean.
         await updateDoc(doc(db, 'households', currentHouseholdId), {
           dissolved: true,
           dissolvedAt: serverTimestamp(),
           dissolvedBy: currentUser.uid
         });
-        // Clear only our own householdId
         await setDoc(doc(db, 'users', currentUser.uid), { householdId: null }, { merge: true });
       } else {
-        // Regular member leaving — update household and clear own householdId
         const updatedMembers = householdData.members.filter(m => m.uid !== currentUser.uid);
         await updateDoc(doc(db, 'households', currentHouseholdId), {
           memberUids: arrayRemove(currentUser.uid),
@@ -623,9 +596,7 @@
     }
   }
 
-  // ─────────────────────────────────────────
-  // RENDER: Stats row
-  // ─────────────────────────────────────────
+  // Stats row
   function renderStats() {
     const sym = getSymbol();
     const today = todayStr(), month = thisMonthStr();
@@ -644,9 +615,7 @@
     document.getElementById('statTxnCount').textContent = allTransactions.length;
   }
 
-  // ─────────────────────────────────────────
-  // RENDER: Transaction history
-  // ─────────────────────────────────────────
+  // Transaction history
   function renderTransactions() {
     const sym = getSymbol();
     const filtered = filterTransactions(currentFilter);
@@ -722,9 +691,7 @@
   }
   window.toggleDetail = toggleDetail;
 
-  // ─────────────────────────────────────────
-  // RENDER: Members list
-  // ─────────────────────────────────────────
+  // Members list
   function renderMembers() {
     const container = document.getElementById('membersList');
     const members = householdData?.members || [];
@@ -770,9 +737,7 @@
     }).join('');
   }
 
-  // ─────────────────────────────────────────
-  // RENDER: Join code box
-  // ─────────────────────────────────────────
+  // Join code box
   function renderJoinCode() {
     const code = householdData?.joinCode || '——';
     const formatted = code.length === 6 ? code.substring(0,3) + ' ' + code.substring(3) : code;
@@ -786,9 +751,7 @@
     renderJoinCode();
   }
 
-  // ─────────────────────────────────────────
   // Copy join code button
-  // ─────────────────────────────────────────
   document.getElementById('copyCodeBtn').addEventListener('click', () => {
     const code = householdData?.joinCode || '';
     navigator.clipboard.writeText(code).then(() => {
@@ -799,9 +762,7 @@
     }).catch(() => prompt('Copy this code:', code));
   });
 
-  // ─────────────────────────────────────────
   // Filter buttons
-  // ─────────────────────────────────────────
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -811,9 +772,7 @@
     });
   });
 
-  // ─────────────────────────────────────────
   // AUTH GATE + INIT
-  // ─────────────────────────────────────────
   onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = 'login.html'; return; }
     currentUser = user;
@@ -827,7 +786,6 @@
     let householdId = userData.householdId || null;
 
     if (!householdId) {
-      // Coming from main.html with a role set in localStorage
       const role = localStorage.getItem('spendwise_collab_role');
       const joinedCode = localStorage.getItem('spendwise_joined_code');
 
@@ -853,7 +811,7 @@
     await loadHouseholdTransactions();
     renderAll();
 
-    // Add Leave button to header
+    // Add Leave button on the top
     const headerRight = document.querySelector('.header-right');
     if (headerRight && !document.getElementById('leaveBtn')) {
       const leaveBtn = document.createElement('button');

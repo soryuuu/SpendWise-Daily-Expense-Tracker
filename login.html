@@ -195,7 +195,7 @@
       </div>
     </form>
 
-    <!-- Forgot Password inline panel — hidden until forgotPasswordBtn clicked -->
+    <!-- Forgot password function, only showed up when clicked -->
     <div id="forgotPanel" style="display:none;margin-top:0.6rem;">
       <div class="input-group">
         <label><i class="fas fa-envelope"></i> Enter your email to reset password</label>
@@ -234,6 +234,7 @@
     <span>or continue with</span>
   </div>
 
+  <!-- login with google button (can add more opt if wanted to) -->
   <div class="social-buttons">
     <button class="social-btn google" id="googleSignInBtn">
       <i class="fab fa-google"></i> Sign in with Google
@@ -308,7 +309,7 @@
     loadingSpinner.style.display = show ? 'block' : 'none';
   }
   
-  // SAVES USER TO FIRESTORE — also sets baseCurrency from admin default for new accounts
+  // save to firestore function
   async function saveUserToFirestore(user, provider, name = null) {
     try {
       const userRef = doc(db, 'users', user.uid);
@@ -340,10 +341,9 @@
         lastLoginAt: serverTimestamp(),
         createdAt: serverTimestamp(),
         status: 'active',
-        ...(isNewUser ? { baseCurrency } : {}) // only set baseCurrency on new accounts
+        ...(isNewUser ? { baseCurrency } : {})
       }, { merge: true });
 
-      // Set localStorage currency to match the user's base currency
       if (isNewUser) {
         localStorage.setItem('spendwise_currency', baseCurrency);
       }
@@ -351,7 +351,7 @@
       console.log("✅ USER SAVED TO FIRESTORE:", user.email, isNewUser ? `(new, baseCurrency: ${baseCurrency})` : '(returning)');
       return true;
     } catch (error) {
-      console.error("❌ Firestore error:", error);
+      console.error("Firestore error:", error);
       return false;
     }
   }
@@ -420,10 +420,9 @@
     }
   }
   
-  // EVENT LISTENERS
   googleBtn.addEventListener('click', signInWithGoogle);
   
-  // Toggle forms
+  // sign in/sign up
   document.querySelectorAll('.toggle-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const formType = btn.getAttribute('data-form');
@@ -436,7 +435,7 @@
     });
   });
   
-  // Login form submit
+  // Login form data
   document.getElementById('loginForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value.trim();
@@ -448,7 +447,7 @@
     signInWithEmail(email, password);
   });
   
-  // Signup form submit
+  // Signup form data
   document.getElementById('signupForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const name = document.getElementById('signupName').value.trim();
@@ -467,7 +466,7 @@
   
   console.log("✅ Firebase ready - Will save users to Firestore 'users' collection");
 
-  // ── Forgot Password ──
+  // Forgot Password Func
   const forgotBtn  = document.getElementById('forgotPasswordBtn');
   const forgotPanel = document.getElementById('forgotPanel');
   const sendResetBtn = document.getElementById('sendResetBtn');
@@ -477,8 +476,7 @@
   forgotBtn.addEventListener('click', () => {
     forgotPanel.style.display = 'block';
     forgotBtn.style.display = 'none';
-    // Pre-fill with whatever they typed in loginEmail
-    const emailVal = document.getElementById('loginEmail').value.trim();
+    const emailVal = document.getElementById('loginEmail').value.trim(); // pre fill with login email if its there
     if (emailVal) resetEmailInput.value = emailVal;
     resetEmailInput.focus();
   });
@@ -501,7 +499,6 @@
     try {
       await sendPasswordResetEmail(auth, email);
       showSuccess(`Reset link sent to ${email}. Check your inbox (and spam folder).`);
-      // Hide the panel after success
       setTimeout(() => {
         forgotPanel.style.display = 'none';
         forgotBtn.style.display = 'inline-block';
@@ -521,7 +518,6 @@
     }
   });
 
-  // Allow Enter in reset email field
   resetEmailInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sendResetBtn.click();
   });
